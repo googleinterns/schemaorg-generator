@@ -86,7 +86,6 @@ class JSONLDSerializer():
         for descriptor in obj.DESCRIPTOR.fields:
             if obj.HasField(descriptor.name):
                 value = getattr(obj, descriptor.name)
-                print(value)
                 return self.__proto_to_dict(value, schema)
 
     def __enum_to_dict(self, obj, schema):
@@ -230,7 +229,7 @@ class JSONLDSerializer():
         """
 
         if self.__check_primtive(obj):
-            return str(obj)
+            return obj
 
         messageType = obj.DESCRIPTOR.GetOptions().Extensions[schema.type]
         if messageType == 'Property':
