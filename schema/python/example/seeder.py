@@ -30,15 +30,15 @@ class IMDBSeeder():
         cursor.execute("CREATE DATABASE {};".format(db_name))
         cursor.execute("USE {};".format(db_name))
 
-        movie_table = "CREATE table movie (url varchar(200) primary key, name varchar(200), image varchar(200), content_rating varchar(10), description varchar(1000), date_published date, keywords varchar(200), duration_minutes int, rating_count int, rating float(4,2), best_rating float(4,2), worst_rating float(4,2));"
-        series_table = "CREATE table series (url varchar(200) primary key, name varchar(200), image varchar(200), content_rating varchar(10), description varchar(1000), date_published date, keywords varchar(200), rating_count int, rating float(4,2), best_rating float(4,2), worst_rating float(4,2));"
-        episode_table = "CREATE table episode (url varchar(200) primary key, name varchar(200), image varchar(200), content_rating varchar(10), description varchar(1000), date_published date, keywords varchar(200), duration_minutes int, rating_count int, rating float(4,2), best_rating float(4,2), worst_rating float(4,2));"
+        movie_table = "CREATE table movie (url varchar(200) primary key, name varchar(200), image varchar(200), content_rating varchar(10), description text, date_published date, keywords varchar(200), duration_minutes int, rating_count int, rating float(4,2), best_rating float(4,2), worst_rating float(4,2));"
+        series_table = "CREATE table series (url varchar(200) primary key, name varchar(200), image varchar(200), content_rating varchar(10), description text, date_published date, keywords varchar(200), rating_count int, rating float(4,2), best_rating float(4,2), worst_rating float(4,2));"
+        episode_table = "CREATE table episode (url varchar(200) primary key, name varchar(200), image varchar(200), content_rating varchar(10), description text, date_published date, keywords varchar(200), duration_minutes int, rating_count int, rating float(4,2), best_rating float(4,2), worst_rating float(4,2));"
         genres_table = "CREATE table genre ( entity_url varchar(200),  name varchar(200) );"
         actor_table = "CREATE table actor ( entity_url varchar(200), url varchar(200), name varchar(200) );"
         director_table = "CREATE table director ( entity_url varchar(200), url varchar(200), name varchar(200) );"
         creator_table = "CREATE table creator ( entity_url varchar(200), url varchar(200), name varchar(200), type enum('PERSON', 'ORGANIZATION'));"
-        review_table = "CREATE table review ( entity_url varchar(200), author varchar(200), date_created date, language varchar(20), name varchar(200), review_body varchar(20000), rating float(4,2), best_rating float(4,2), worst_rating float(4,2) );"
-        trailer_table = "CREATE table trailer( name varchar(200), embed_url varchar(200), thumbnail_url varchar(200), description varchar(1000), upload_date datetime, entity_url varchar(200) );"
+        review_table = "CREATE table review ( entity_url varchar(200), author varchar(200), date_created date, language varchar(20), name varchar(200), review_body text, rating float(4,2), best_rating float(4,2), worst_rating float(4,2) );"
+        trailer_table = "CREATE table trailer( name varchar(200), embed_url varchar(200), thumbnail_url varchar(200), description text, upload_date datetime, entity_url varchar(200) );"
 
         cursor.execute(movie_table)
         cursor.execute(series_table)
