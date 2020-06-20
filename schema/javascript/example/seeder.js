@@ -30,15 +30,15 @@ class IMDBSeeder {
      */
     async init(db_config){
         let con = mysql.createConnection({
-            host: db_config.db_host,
-            user: db_config.db_user,
-            password: db_config.db_password
+            host: db_config.host,
+            user: db_config.user,
+            password: db_config.password
         });
 
         let query = util.promisify(con.query).bind(con);
-        await query(`DROP DATABASE IF EXISTS ${db_config.db_name};`)
-        await query(`CREATE DATABASE ${db_config.db_name};`)
-        await query(`USE ${db_config.db_name};`)
+        await query(`DROP DATABASE IF EXISTS ${db_config.dbname};`)
+        await query(`CREATE DATABASE ${db_config.dbname};`)
+        await query(`USE ${db_config.dbname};`)
         con.end();
             
     }
@@ -50,15 +50,15 @@ class IMDBSeeder {
      */
     async createTables(query) {
 
-        let movieTable = "CREATE table movie (url varchar(200) primary key, name varchar(200), image varchar(200), content_rating varchar(10), description varchar(1000), date_published date, keywords varchar(200), duration_minutes int, rating_count int, rating float(4,2), best_rating float(4,2), worst_rating float(4,2));"
-        let seriesTable = "CREATE table series (url varchar(200) primary key, name varchar(200), image varchar(200), content_rating varchar(10), description varchar(1000), date_published date, keywords varchar(200), rating_count int, rating float(4,2), best_rating float(4,2), worst_rating float(4,2));"
-        let episodeTable = "CREATE table episode (url varchar(200) primary key, name varchar(200), image varchar(200), content_rating varchar(10), description varchar(1000), date_published date, keywords varchar(200), duration_minutes int, rating_count int, rating float(4,2), best_rating float(4,2), worst_rating float(4,2));"
+        let movieTable = "CREATE table movie (url varchar(200) primary key, name varchar(200), image varchar(200), content_rating varchar(10), description text, date_published date, keywords varchar(200), duration_minutes int, rating_count int, rating float(4,2), best_rating float(4,2), worst_rating float(4,2));"
+        let seriesTable = "CREATE table series (url varchar(200) primary key, name varchar(200), image varchar(200), content_rating varchar(10), description text, date_published date, keywords varchar(200), rating_count int, rating float(4,2), best_rating float(4,2), worst_rating float(4,2));"
+        let episodeTable = "CREATE table episode (url varchar(200) primary key, name varchar(200), image varchar(200), content_rating varchar(10), description text, date_published date, keywords varchar(200), duration_minutes int, rating_count int, rating float(4,2), best_rating float(4,2), worst_rating float(4,2));"
         let genresTable = "CREATE table genre ( entity_url varchar(200),  name varchar(200) );"
         let actorTable = "CREATE table actor ( entity_url varchar(200), url varchar(200), name varchar(200) );"
         let directorTable = "CREATE table director ( entity_url varchar(200), url varchar(200), name varchar(200) );"
         let creatorTable = "CREATE table creator ( entity_url varchar(200), url varchar(200), name varchar(200), type enum('PERSON', 'ORGANIZATION'));"
-        let reviewTable = "CREATE table review ( entity_url varchar(200), author varchar(200), date_created date, language varchar(20), name varchar(200), review_body varchar(20000), rating float(4,2), best_rating float(4,2), worst_rating float(4,2) );"
-        let trailerTable = "CREATE table trailer( name varchar(200), embed_url varchar(200), thumbnail_url varchar(200), description varchar(1000), upload_date datetime, entity_url varchar(200) );"
+        let reviewTable = "CREATE table review ( entity_url varchar(200), author varchar(200), date_created date, language varchar(20), name varchar(200), review_body text, rating float(4,2), best_rating float(4,2), worst_rating float(4,2) );"
+        let trailerTable = "CREATE table trailer( name varchar(200), embed_url varchar(200), thumbnail_url varchar(200), description text, upload_date datetime, entity_url varchar(200) );"
 
         await query(movieTable);
         await query(seriesTable);

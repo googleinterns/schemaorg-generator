@@ -17,7 +17,7 @@ const dump = require("./dump.json");
 const config = require("./config.json");
 const schema = require('./schema_pb');
 const schemaDescriptor = require('./schema_descriptor.json');
-const JSONLDSerializer = require('../javascript').JSONLDSerializer;
+const JSONLDSerializer = require('../serializer').JSONLDSerializer;
 const IMDBExample = require('./feed_generator').IMDBExample;
 const IMDBSeeder = require('./seeder').IMDBSeeder;
 
