@@ -368,7 +368,7 @@ class SchemaGenerator():
                 o["fields"] = list()
 
                 for p in class_to_prop[x]:
-                    if p.name == x:
+                    if p.parent == x:
                         prop_from_self.append(p.name)
                     else:
                         if p.parent not in prop_inherited:
@@ -417,7 +417,7 @@ class SchemaGenerator():
             o2["fields"] = list()
 
             for p in class_to_prop[x]:
-                if p.name == x:
+                if p.parent == x:
                     prop_from_self.append(p.name)
                 else:
                     if p.parent not in prop_inherited:
