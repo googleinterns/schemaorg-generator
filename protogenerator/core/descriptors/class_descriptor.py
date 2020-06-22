@@ -104,8 +104,9 @@ class ClassDescriptor:
         prop_from_self = sorted(prop_from_self)
         prop_inherited = collections.OrderedDict(sorted(prop_inherited.items()))
 
-        if len(prop_from_self) > 0:
-            proto_string += "\n\t// Properties from " + self.name + ".\n"
+        proto_string += "\n\t// Properties from " + self.name + ".\n"
+        proto_string += "\tstring id = {} [json_name = \"@id\"]; \n".format(field_number)
+        field_number = field_number + 1
 
         for x in prop_from_self:
             field_number = field_number if field_number < 19000 or field_number > 20000 else 20000
