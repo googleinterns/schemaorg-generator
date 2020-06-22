@@ -14,6 +14,7 @@
 import json
 import datetime
 import isodate
+import os
 from types import ModuleType
 
 
@@ -42,7 +43,7 @@ class JSONLDSerializer():
         assert isinstance(
             schema, ModuleType), "Invalid parameter 'schema' must be <class 'module'>."
 
-        out_obj = self.__proto_to_dict(obj, schema)
+        out_obj = self.proto_to_dict(obj, schema)
         out_obj['@context'] = 'http://schema.org'
 
         fp = open(outfile, 'w')
@@ -70,7 +71,7 @@ class JSONLDSerializer():
                     out_obj[descriptor.json_name] = value
             elif len(value) > 0:
                 out_obj[descriptor.json_name] = [
-                    self.__proto_to_dict(x, schema) for x in value]
+                    self.proto_to_dict(x, schema) for x in value]
                 if len(out_obj[descriptor.json_name]) == 1:
                     out_obj[descriptor.json_name] = out_obj[descriptor.json_name][0]
 
@@ -90,7 +91,7 @@ class JSONLDSerializer():
         for descriptor in obj.DESCRIPTOR.fields:
             if obj.HasField(descriptor.name):
                 value = getattr(obj, descriptor.name)
-                return self.__proto_to_dict(value, schema)
+                return self.proto_to_dict(value, schema)
 
     def __enum_to_dict(self, obj, schema):
         """Convert a schema enumeration to dictionary or string.
@@ -114,7 +115,7 @@ class JSONLDSerializer():
         else:
             desciptor = obj.DESCRIPTOR.fields[1]
             value = getattr(obj, desciptor.name)
-            return self.__proto_to_dict(value, schema)
+            return self.proto_to_dict(value, schema)
 
     def __parse_date(self, obj):
         """Convert a protobuf date object to python date object.
@@ -221,7 +222,7 @@ class JSONLDSerializer():
                 return True
         return False
 
-    def __proto_to_dict(self, obj, schema):
+    def proto_to_dict(self, obj, schema):
         """Convert a protobuf schema message to dictionary.
 
         Args:
@@ -252,6 +253,46 @@ class JSONLDSerializer():
             return self.__duration_to_string(obj)
         else:
             return self.__class_to_dict(obj, schema)
+
+class JSONLDItemListSerializer(JSONLDSerializer):
+
+    def __init__(self, outfile):
+            
+            JSONLDSerializer.__init__(self)
+            assert isinstance(outfile, str), "Invalid parameter 'outfile' must be 'str'."
+
+            self.count = 0
+            self.outfile  = open(outfile, "wb")
+            self.outfile.write(bytes("{\n", 'utf-8'))
+            self.outfile.write(bytes("\t\"@context\":\"https://schema.org\",\n", 'utf-8'))
+            self.outfile.write(bytes("\t\"@type\":\"ItemList\",\n", 'utf-8'))
+            self.outfile.write(bytes("\t\"itemListElement\":[", 'utf-8'))
+
+    def add_item(self, list_item, schema):
+        
+        assert self.outfile.closed == False, "The serializer had been already closed."
+        assert isinstance(list_item, schema.ListItem), "'list_item' must be an instance of schema.ListItem"
+
+        list_item = self.proto_to_dict(list_item, schema)
+        list_item = json.dumps(list_item, indent=4, sort_keys=True)
+        list_item = "\n" + list_item
+        list_item = list_item.replace("\n", "\n\t\t")
+        list_item = list_item + ","
+        self.outfile.write(bytes(list_item, 'utf-8'))
+        self.count = self.count + 1
+        
+    
+    def close(self):
+
+        assert self.outfile.closed == False, "The serializer had been already closed."
+
+        if self.count:
+            self.outfile.seek(-1, os.SEEK_CUR)
+        
+        self.outfile.write(bytes("\n\t]\n", 'utf-8'))
+        self.outfile.write(bytes("}\n", 'utf-8'))
+        self.outfile.close()
+        
 
 # Test code to be removed later
 # import schema_pb2
