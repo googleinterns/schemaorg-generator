@@ -88,7 +88,9 @@ class IMDBExample:
             if m[6]:
                 movie.keywords.add().text = m[6]
 
-            # TODO: Duration
+            if m[7]:
+                duration = movie.duration.add().duration
+                duration = self.__add_duration(duration, m[7])
 
             if m[9]:
                 aggregate_rating = movie.aggregate_rating.add().aggregate_rating
@@ -231,7 +233,9 @@ class IMDBExample:
             if m[6]:
                 tv_episode.keywords.add().text = m[6]
 
-            # TODO: Duration
+            if m[7]:
+                duration = tv_episode.time_required.add().duration
+                duration = self.__add_duration(duration, m[7])
 
             if m[9]:
                 aggregate_rating = tv_episode.aggregate_rating.add().aggregate_rating
@@ -292,6 +296,11 @@ class IMDBExample:
         datetime_obj.time.seconds = datetime_obj.seconds
 
         return datetime_obj
+
+    def __add_duration(self, duration_proto, duration_minutes):
+
+        duration_proto.seconds = duration_minutes * 60
+        return duration_proto
 
 
     def __add_genres(self, url, entity, cursor):
