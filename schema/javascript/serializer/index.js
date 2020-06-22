@@ -61,6 +61,11 @@ class JSONLDSerializer {
                         outObj[schemaDescriptor.messages[objectType].fields[i]]=outObj[schemaDescriptor.messages[objectType].fields[i]][0];
                     }
                 }
+                else if(schemaDescriptor.messages[objectType].fields[i] == "@id"){
+                    if(obj.array[0]){
+                        outObj["@id"] = obj.array[0];
+                    }
+                }
             }
             return outObj
         }
