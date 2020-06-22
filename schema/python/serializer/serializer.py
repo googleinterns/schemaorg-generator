@@ -64,7 +64,11 @@ class JSONLDSerializer():
         out_obj['@type'] = obj.DESCRIPTOR.GetOptions().Extensions[schema.type]
         for descriptor in obj.DESCRIPTOR.fields:
             value = getattr(obj, descriptor.name)
-            if len(value) > 0:
+            
+            if descriptor.name == "id":
+                if len(value) > 0:
+                    out_obj[descriptor.json_name] = value
+            elif len(value) > 0:
                 out_obj[descriptor.json_name] = [
                     self.__proto_to_dict(x, schema) for x in value]
                 if len(out_obj[descriptor.json_name]) == 1:
@@ -264,6 +268,7 @@ class JSONLDSerializer():
 # person = actor.person
 # name = person.name.add()
 # name.text = "Ian McShane"
+# movie.id = "id no 1"
 
 # serializer = JSONLDSerializer()
 # serializer.write(movie, "./test.json", schema_pb2)
