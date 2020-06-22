@@ -92,7 +92,11 @@ class IMDBExample{
                 movie.addKeywords(keywords);
             }
 
-            // TODO: Duration
+            if(m["duration_minutes"]){
+                let duration = new schema.DurationProperty();
+                duration.setDuration(this.addDuration(m["duration_minutes"], schema));
+                movie.addDuration(duration);
+            }
 
             if(m["rating"]){
                 let aggregateRatingProp = new schema.AggregateRatingProperty();
@@ -216,8 +220,6 @@ class IMDBExample{
                 keywords.setText(m["keywords"]);
                 series.addKeywords(keywords);
             }
-
-            // TODO: Duration
 
             if(m["rating"]){
                 let aggregateRatingProp = new schema.AggregateRatingProperty();
@@ -343,7 +345,12 @@ class IMDBExample{
                 episode.addKeywords(keywords);
             }
 
-            // TODO: Duration
+            
+            if(m["duration_minutes"]){
+                let timeRequired = new schema.TimeRequiredProperty();
+                timeRequired.setDuration(this.addDuration(m["duration_minutes"], schema));
+                episode.addTimeRequired(timeRequired);
+            }
 
             if(m["rating"]){
                 let aggregateRatingProp = new schema.AggregateRatingProperty();
@@ -662,6 +669,12 @@ class IMDBExample{
         dt.setMonth(dateObj.getMonth()+1);
         dt.setDay(dateObj.getDate());
         return dt;
+    }
+
+    addDuration(durationMin, schema) {
+        let duration = new schema.Duration();
+        duration.setSeconds(durationMin * 60);
+        return duration;
     }
 
     async generateFeed(query, schema){

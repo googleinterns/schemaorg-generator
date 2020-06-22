@@ -290,7 +290,7 @@ class IMDBSeeder {
                     ${JSON.stringify(m["description"]) || "\"\"" }, 
                     ${JSON.stringify(m["datePublished"]) || "\"\"" }, 
                     ${JSON.stringify(m["keywords"]) || "\"\"" }, 
-                    ${JSON.stringify(this.getDuration(m["duration"] || "PT0M")) }, 
+                    ${JSON.stringify(this.getDuration(m["timeRequired"] || "PT0M")) }, 
                     ${JSON.stringify(m["aggregateRating"]["ratingCount"]) || "\"\"" }, 
                     ${JSON.stringify(m["aggregateRating"]["ratingValue"]) || "\"\"" }, 
                     ${JSON.stringify(m["aggregateRating"]["bestRating"]) || "\"\"" }, 
