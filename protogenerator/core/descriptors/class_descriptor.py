@@ -13,7 +13,7 @@
 # limitations under the License.
 import utils.utils as utils
 import collections
-
+from jinja2 import Environment, FileSystemLoader
 
 class ClassDescriptor:
     """The ClassDescriptor generates protocol buffer code for schema class.
@@ -45,49 +45,19 @@ class ClassDescriptor:
         self.field_types = field_types
         self.package_name = package_name
 
-    def to_proto(self, add_header, add_import, comment):
+    def to_proto(self, comment):
         """Return proto code for the schema class.
 
         Args:
-            add_header (bool): If header of proto file needs to be added.
-            add_import (bool): If import statements need to be added.
             comment (string): The comment to be added to the code.
 
         Returns:
             proto_string: The proto code for the schema class as a string.
         """
-        assert isinstance(
-            add_header, bool), "Invalid parameter 'add_header' must be 'bool'."
-        assert isinstance(
-            add_import, bool), "Invalid parameter 'add_import' must be 'bool'."
+
         assert isinstance(
             comment, str), "Invalid parameter 'comment' must be 'str'."
 
-        proto_string = ''
-
-        if add_header:
-            proto_string += "syntax = \"proto3\"; \n"
-            proto_string += 'package {}; \n\n'.format(self.package_name)
-
-        if add_import:
-            proto_string += "import \"google/protobuf/descriptor.proto\";\n"
-            proto_string += "import \"protoOptions/message_options.proto\";\n\n"
-
-            s = set(self.field_types)
-
-            # Every unique field type is imported without any exclusion because
-            # every property is modelled as a message and needs to be imported.
-            for x in s:
-                proto_string += "import \"properties/{}.proto\"; \n".format(
-                    utils.to_snake_case(utils.get_property_name(x)))
-
-            proto_string += '\n'
-        
-        proto_string += "// " + comment.replace("\n", "\n// ") + "\n"
-        proto_string += 'message {} {{ \n'.format(self.name)
-        proto_string += "\toption (type) = \"{}\";\n".format(self.name)
-
-        field_number = 1
 
         prop_from_self = list()
         prop_inherited = dict()
@@ -104,30 +74,17 @@ class ClassDescriptor:
         prop_from_self = sorted(prop_from_self)
         prop_inherited = collections.OrderedDict(sorted(prop_inherited.items()))
 
-        proto_string += "\n\t// Properties from " + self.name + ".\n"
-        proto_string += "\tstring id = {} [json_name = \"@id\"]; \n".format(field_number)
-        field_number = field_number + 1
+        file_loader = FileSystemLoader('./core/templates')
+        env = Environment(loader=file_loader, trim_blocks=True, lstrip_blocks=True)
+        env.globals["get_property_name"] = utils.get_property_name
+        env.globals["to_snake_case"] = utils.to_snake_case
+        env.globals["sorted"] = sorted
 
-        for x in prop_from_self:
-            field_number = field_number if field_number < 19000 or field_number > 20000 else 20000
-
-            proto_string += "\trepeated {} {} = {} [json_name = \"{}\"]; \n".format(
-                utils.get_property_name(x), utils.to_snake_case(x), field_number, x)
-            field_number = field_number + 1
-        
-        for ky in prop_inherited:
-            props = sorted(prop_inherited[ky])
-
-            if len(props) > 0:
-                proto_string += "\n\t// Properties from " + ky + ".\n"
-
-            for x in props:
-                field_number = field_number if field_number < 19000 or field_number > 20000 else 20000
-
-                proto_string += "\trepeated {} {} = {} [json_name = \"{}\"]; \n".format(
-                    utils.get_property_name(x), utils.to_snake_case(x), field_number, x)
-                field_number = field_number + 1
-
-        proto_string += '}\n'
+        comment = "// " + comment.replace("\n", "\n// ")
+        proto_string = env.get_template('class.txt').render(
+                                                        name = self.name, 
+                                                        prop_from_self = prop_from_self, 
+                                                        prop_inherited = prop_inherited, 
+                                                        comment=comment)
 
         return proto_string

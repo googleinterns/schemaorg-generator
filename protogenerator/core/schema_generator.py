@@ -19,6 +19,7 @@ import utils.utils as utils
 import utils.constants as constants
 import json
 import collections
+from jinja2 import Environment, FileSystemLoader
 from bs4 import BeautifulSoup
 
 class SchemaGenerator():
@@ -52,7 +53,7 @@ class SchemaGenerator():
 
         assert isinstance(
             dst_path, str), "Invalid parameter 'dst_path' must be 'str'."
-        outFile = open(dst_path+"schema.proto", 'w')
+        outFile = open(dst_path + "schema.proto", 'w')
 
         class_to_prop, prop_to_class, enumerations = self.__get_values()
 
@@ -99,7 +100,7 @@ class SchemaGenerator():
                 soup = BeautifulSoup(comment, "html.parser")
                 comment = soup.get_text()
 
-                proto_class += class_descriptor.ClassDescriptor(x, list(class_to_prop[x]), package_name).to_proto(False, False, comment)
+                proto_class += class_descriptor.ClassDescriptor(x, list(class_to_prop[x]), package_name).to_proto(comment)
                 proto_class += '\n'
 
         return proto_class
@@ -127,7 +128,7 @@ class SchemaGenerator():
                 soup = BeautifulSoup(comment, "html.parser")
                 comment = soup.get_text()
 
-                proto_property += property_descriptor.PropertyDescriptor(x, list(prop_to_class[x]),list(class_list), package_name).to_proto(False, False, comment)
+                proto_property += property_descriptor.PropertyDescriptor(x, list(prop_to_class[x]),list(class_list), package_name).to_proto(comment)
                 proto_property += '\n'
 
         return proto_property
@@ -162,7 +163,7 @@ class SchemaGenerator():
             comment = soup.get_text()
 
             proto_enum += enum_descriptor.EnumDescriptor(x,list(
-                class_to_prop[x]), list(enum_values), package_name).to_proto(False, False, comment)
+                class_to_prop[x]), list(enum_values), package_name).to_proto(comment)
             proto_enum += '\n'
 
         return proto_enum
@@ -262,10 +263,10 @@ class SchemaGenerator():
             proto_header: The proto code of header as a string.
         """
 
-        proto_header = ''
-        proto_header += "syntax = \"proto3\"; \n"
-        proto_header += 'package {}; \n\n'.format(package_name)
-        proto_header += "import \"google/protobuf/descriptor.proto\";\n\n"
+        file_loader = FileSystemLoader('./core/templates')
+        env = Environment(loader=file_loader)
+
+        proto_header = env.get_template('header.txt').render(package_name=package_name)
         return proto_header
 
     def __get_options(self):
@@ -274,13 +275,10 @@ class SchemaGenerator():
         Returns:
             proto_options: The proto code of options for JSONLD serializer as a string.
         """
-        proto_options = ''
-        proto_options += 'extend google.protobuf.MessageOptions {\n'
-        proto_options += '\toptional string type = 50001;\n'
-        proto_options += '}\n\n'
-        proto_options += 'extend google.protobuf.EnumValueOptions {\n'
-        proto_options += '\toptional string schemaorg_value = 50002;\n'
-        proto_options += '}\n\n'
+        file_loader = FileSystemLoader('./core/templates')
+        env = Environment(loader=file_loader)
+
+        proto_options = env.get_template('options.txt').render()
         return proto_options
 
     def __get_datatypes(self):
@@ -289,49 +287,11 @@ class SchemaGenerator():
         Returns:
             proto_datatypes: The proto code of datatypes in accordance with schemaorg as a string.
         """
-        proto_datatypes = ''
-        proto_datatypes += 'message DateTime {\n'
-        proto_datatypes += "\toption (type) = \"DatatypeDateTime\";\n"
-        proto_datatypes += '\tDate date = 1;\n'
-        proto_datatypes += '\tTime time = 2;\n'
-        proto_datatypes += '}\n\n'
-        proto_datatypes += 'message Date {\n'
-        proto_datatypes += "\toption (type) = \"DatatypeDate\";\n"
-        proto_datatypes += '\tint32 year = 1;\n'
-        proto_datatypes += '\tint32 month = 2;\n'
-        proto_datatypes += '\tint32 day = 3;\n'
-        proto_datatypes += '\tTimezone timezone = 4;\n'
-        proto_datatypes += '}\n\n'
-        proto_datatypes += 'message Time {\n'
-        proto_datatypes += "\toption (type) = \"DatatypeTime\";\n"
-        proto_datatypes += '\tint32 hours = 1;\n'
-        proto_datatypes += '\tint32 minutes = 2;\n'
-        proto_datatypes += '\tint32 seconds = 3;\n'
-        proto_datatypes += '\tTimezone timezone = 4;\n'
-        proto_datatypes += '}\n\n'
-        proto_datatypes += 'message Timezone {\n'
-        proto_datatypes += '\tstring iana_id = 1;\n'
-        proto_datatypes += '}\n\n'
-        proto_datatypes += 'message Duration {\n'
-        proto_datatypes += '\toption (type) = "DatatypeDuration";\n'
-        proto_datatypes += '\tint64 seconds = 1;\n'
-        proto_datatypes += '}\n\n'
-        proto_datatypes += 'message Distance {\n'
-        proto_datatypes += '\toption (type) = "DatatypeQuantitative";\n'
-        proto_datatypes += '\tdouble value = 1;\n'
-        proto_datatypes += '\tstring unit = 2;\n'
-        proto_datatypes += '}\n\n'
-        proto_datatypes += 'message Energy {\n'
-        proto_datatypes += '\toption (type) = "DatatypeQuantitative";\n'
-        proto_datatypes += '\tdouble value = 1;\n'
-        proto_datatypes += '\tstring unit = 2;\n'
-        proto_datatypes += '}\n\n'
-        proto_datatypes += 'message Mass {\n'
-        proto_datatypes += '\toption (type) = "DatatypeQuantitative";\n'
-        proto_datatypes += '\tdouble value = 1;\n'
-        proto_datatypes += '\tstring unit = 2;\n'
-        proto_datatypes += '}\n\n'
 
+        file_loader = FileSystemLoader('./core/templates')
+        env = Environment(loader=file_loader)
+
+        proto_datatypes = env.get_template('datatypes.txt').render()
         return proto_datatypes
 
     def __get_json_descriptor(self, class_to_prop, prop_to_class, enumerations):

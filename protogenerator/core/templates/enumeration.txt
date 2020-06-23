@@ -1,0 +1,43 @@
+{{comment}}
+message {{name + 'Class'}} { 
+	option (type) = "{{name}}";
+	enum Id {
+		UNKNOWN = 0 [(schemaorg_value)="Unknown"];
+        {% set enum_index = namespace(value=1) %}
+        {% for x in sorted(enum_values) %}
+		{{get_enum_value_name(x)}} = {{enum_index.value}} [(schemaorg_value) = "https://schema.org/{{x}}"];
+        {% set enum_index.value = enum_index.value + 1 %}
+		{% endfor %}
+	}
+
+
+	// Properties from {{name}}.
+	string id = 1 [json_name = "@id"]; 
+    {% set field_number = namespace(value=2) %}
+    {% for x in prop_from_self %}
+    {% set field_number.value = field_number.value if field_number.value < 19000 or field_number.value > 20000 else 20000 %}
+    repeated {{get_property_name(x)}} {{to_snake_case(x)}} = {{field_number.value}} [json_name = "{{x}}"];
+    {% set field_number.value = field_number.value + 1 %}
+    {% endfor %}
+    {% for ky in prop_inherited %}
+    {% set props = sorted(prop_inherited[ky]) %}
+    {% if props|length > 0 %}
+
+    // Properties from {{ky}}.
+    {% endif %}
+    {% for x in props %}
+    {% set field_number.value = field_number.value if field_number.value < 19000 or field_number.value > 20000 else 20000 %}
+    repeated {{get_property_name(x)}} {{to_snake_case(x)}} = {{field_number.value}} [json_name = "{{x}}"];
+    {% set field_number.value = field_number.value + 1 %}
+    {% endfor %}
+    {% endfor %}
+}
+
+message {{name}} { 
+	option (type) = "EnumWrapper";
+	oneof values {
+		{{name + 'Class' }}.Id id = 1;
+		{{name + 'Class' }} {{to_snake_case(name)}} = 2;
+	}
+}
+

@@ -1,0 +1,26 @@
+{{comment}}
+message {{name}} { 
+	option (type) = "{{name}}";
+
+	// Properties from {{name}}.
+	string id = 1 [json_name = "@id"]; 
+    {% set field_number = namespace(value=2) %}
+    {% for x in prop_from_self %}
+    {% set field_number.value = field_number.value if field_number.value < 19000 or field_number.value > 20000 else 20000 %}
+    repeated {{get_property_name(x)}} {{to_snake_case(x)}} = {{field_number.value}} [json_name = "{{x}}"];
+    {% set field_number.value = field_number.value + 1 %}
+    {% endfor %}
+    {% for ky in prop_inherited %}
+    {% set props = sorted(prop_inherited[ky]) %}
+    {% if props|length > 0 %}
+
+    // Properties from {{ky}}.
+    {% endif %}
+    {% for x in props %}
+    {% set field_number.value = field_number.value if field_number.value < 19000 or field_number.value > 20000 else 20000 %}
+    repeated {{get_property_name(x)}} {{to_snake_case(x)}} = {{field_number.value}} [json_name = "{{x}}"];
+    {% set field_number.value = field_number.value + 1 %}
+    {% endfor %}
+    {% endfor %}
+}
+

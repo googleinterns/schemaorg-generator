@@ -13,6 +13,7 @@
 # limitations under the License.
 import utils.utils as utils
 import utils.constants as constants
+from jinja2 import Environment, FileSystemLoader
 
 
 def get_import_statement(x):
@@ -75,12 +76,10 @@ class PropertyDescriptor:
         self.package_name = package_name
         self.class_list = class_list
 
-    def to_proto(self, add_header, add_import, comment):
+    def to_proto(self, comment):
         """Return proto code for the schema property.
 
         Args:
-            add_header (bool): If header of proto file needs to be added.
-            add_import (bool): If import statements need to be added.
             comment (string): The comment to be added to the code.
 
         Returns:
@@ -88,45 +87,18 @@ class PropertyDescriptor:
         """
 
         assert isinstance(
-            add_header, bool), "Invalid parameter 'add_header' must be 'bool'."
-        assert isinstance(
-            add_import, bool), "Invalid parameter 'add_import' must be 'bool'."
-        assert isinstance(
             comment, str), "Invalid parameter 'comment' must be 'str'."
+        
+        file_loader = FileSystemLoader('./core/templates')
+        env = Environment(loader=file_loader, trim_blocks=True, lstrip_blocks=True)
+        env.globals["get_class_type"] = utils.get_class_type
+        env.globals["to_snake_case"] = utils.to_snake_case
 
-        proto_string = ""
-
-        if add_header:
-            proto_string += "syntax = \"proto3\"; \n"
-            proto_string += 'package {}; \n\n'.format(self.package_name)
-
-        if add_import:
-            proto_string += "import \"google/protobuf/descriptor.proto\";\n"
-            proto_string += "import \"protoOptions/message_options.proto\";\n\n"
-
-            s = set(self.field_types)
-
-            for x in s:
-                proto_string += get_import_statement(x)
-
-            proto_string += '\n'
-
-        proto_string += "// " + comment.replace("\n", "\n//") + "\n"
-        proto_string += 'message {} {{ \n'.format(
-            utils.get_property_name(self.name))
-        proto_string += "\toption (type) = \"Property\";\n"
-        proto_string += '\toneof values {\n'
-
-        field_number = 1
-
-        for x in sorted(self.field_types):
-            field_number = field_number if field_number < 19000 or field_number > 20000 else 20000
-
-            proto_string += '\t\t{} {} = {}; \n'.format(
-                utils.get_class_type(x, self.class_list), utils.to_snake_case(x), field_number)
-            field_number = field_number + 1
-
-        proto_string += '\t}\n'
-        proto_string += '}\n'
+        comment = "// " + comment.replace("\n", "\n// ")
+        proto_string = env.get_template('property.txt').render(
+                                                            name = utils.get_property_name(self.name), 
+                                                            field_types = sorted(self.field_types), 
+                                                            class_list = self.class_list, 
+                                                            comment=comment)
 
         return proto_string
