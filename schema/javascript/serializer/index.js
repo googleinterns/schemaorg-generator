@@ -14,6 +14,7 @@
 const fs = require('fs');
 const util = require('util');
 const moment = require('moment');
+const assert = require('assert');
 
 /**
  * JSONLDSerializer is used to serialize schema proto object to JSONLD feed.
@@ -245,71 +246,102 @@ class JSONLDSerializer {
     
 }
 
+class JSONLDItemListSerializer extends JSONLDSerializer {
+
+    constructor(outFile){
+        super();
+        this.outFile = fs.openSync(outFile, 'w');
+        this.count = 0;
+        this.isClosed = false;
+
+        fs.writeSync(this.outFile, "{\n");
+        fs.writeSync(this.outFile, "\t\"@context\":\"https://schema.org\",\n");
+        fs.writeSync(this.outFile, "\t\"@type\":\"ItemList\",\n");
+        fs.writeSync(this.outFile, "\t\"itemListElement\":[");
+
+    }
+
+    addItem(listItem, schema, schemaDescriptor) {
+
+        assert(this.isClosed == false, "The serializer has already been closed.");
+
+        if(this.count){
+            fs.writeSync(this.outFile, ",");
+        }
+
+        let listItemSerialized = super.protoToDict(listItem, "ListItem", schemaDescriptor);
+        listItemSerialized = JSON.stringify(listItemSerialized, null, 4);
+        listItemSerialized = "\n" + listItemSerialized
+        listItemSerialized = listItemSerialized.split("\n").join("\n\t\t");
+
+        fs.writeSync(this.outFile, listItemSerialized);
+        this.count = this.count + 1;
+        
+    }
+
+    close() {
+
+        assert(this.isClosed == false, "The serializer has already been closed.");
+
+        fs.writeSync(this.outFile, "\n\t]\n");
+        fs.writeSync(this.outFile, "}\n");
+        fs.closeSync(this.outFile);
+        this.isClosed = true;
+    }
+    
+}
+
 module.exports.JSONLDSerializer = JSONLDSerializer;
-
-// Test code will be removed later
-
-// var movie = new schema.Movie();
-// var actor1 = new schema.ActorProperty();
-// var person1 = new schema.Person();
-// var name1 = new schema.NameProperty();
-// var actor2 = new schema.ActorProperty();
-// var person2 = new schema.Person();
-// var name2 = new schema.NameProperty();
-// var actor3 = new schema.ActorProperty();
-// var person3 = new schema.Person();
-// var name3 = new schema.NameProperty();
-// name1.setText("Johnny Depp");
-// person1.addName(name1);
-// actor1.setPerson(person1);
-// name2.setText("Johnny Depp2");
-// person2.addName(name2);
-// actor2.setPerson(person2);
-// name3.setText("Johnny Depp3");
-// person3.addName(name3);
-// actor3.setPerson(person3);
-// movie.addActor(actor1);
-// movie.addActor(actor2);
-// movie.addActor(actor3);
-
-// var schema = require('./schema_pb');
-// var schemaDescriptor = require("./schema_descriptor.json")
-// console.log(person1);
-// console.log(schemaDescriptor.messages["Person"].fields[44]);
-
-// dt = new schema.Time()
-// dtt = new schema.DateTime()
-// dt.setHours(10)
-// dt.setMinutes(5)
-// dt.setSeconds(2)
-
-// d = new schema.Date()
-// d.setYear(2000)
-// d.setMonth(2)
-// d.setDay(9)
-
-// dtt.setTime(dt)
-// dtt.setDate(d)
-
-// console.log(dt)
-// console.log(dtt)
-
-// jss = new JSONLDSerializer()
-// jss.writeToFile(movie, "Movie", schemaDescriptor, "./out.json");
-// console.log(JSON.stringify(jss.protoToDict(dtt, "DateTime", schemaDescriptor)))
-
-// var e1 = new schema.PaymentStatusType()
-// var e2 = new schema.PaymentStatusType()
-
-// var cs = new schema.PaymentStatusTypeClass()
-// cs.addName(name1)
+module.exports.JSONLDItemListSerializer = JSONLDItemListSerializer;
 
 
-// e1.setId(schema.PaymentStatusTypeClass.Id["PAYMENT_COMPLETE"])
-// e2.setPaymentStatusType(cs)
+// // Test code will be removed later
+// let j = new JSONLDItemListSerializer("./out.json");
 
-// console.log(e1)
-// console.log(e2)
-// console.log(JSON.stringify(jss.protoToDict(e1, "PaymentStatusType", schemaDescriptor)))
-// console.log(JSON.stringify(jss.protoToDict(e2, "PaymentStatusType", schemaDescriptor)))
+// const schema = require("./schema_pb.js");
+// const schemaDescriptor = require("./schema_descriptor.json");
+// for(let i=0; i<4; i++){
+//     let listItem = new schema.ListItem();
+//     let item = new schema.ItemProperty();
+//     let position = new schema.PositionProperty();
+//     position.setInteger(i+1);
+//     listItem.addPosition(position);
+
+//     let movie = new schema.Movie();
+//     let name = new schema.NameProperty();
+//     name.setText("movie name" + String(i+1));
+//     movie.addName(name);
+
+//     let actor = new schema.ActorProperty();
+//     let person = new schema.Person();
+//     name = new schema.NameProperty();
+//     name.setText("actor name" + String(i+1) +"-1");
+//     person.addName(name);
+//     actor.setPerson(person);
+//     movie.addActor(actor);
+
+//     actor = new schema.ActorProperty();
+//     person = new schema.Person();
+//     name = new schema.NameProperty();
+//     name.setText("actor name" + String(i+1) +"-2");
+//     person.addName(name);
+//     actor.setPerson(person);
+//     movie.addActor(actor);
+
+//     actor = new schema.ActorProperty();
+//     person = new schema.Person();
+//     name = new schema.NameProperty();
+//     name.setText("actor name" + String(i+1) +"-3");
+//     person.addName(name);
+//     actor.setPerson(person);
+//     movie.addActor(actor);
+
+//     item.setMovie(movie);
+//     listItem.addItem(item);
+
+//     j.addItem(listItem, schema, schemaDescriptor);
+
+// }
+
+// j.close();
 
