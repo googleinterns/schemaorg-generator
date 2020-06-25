@@ -54,6 +54,7 @@ class IMDBExample{
                 let url = new schema.UrlProperty();
                 url.setUrl(m["url"]);
                 movie.addUrl(url);
+                movie.setId(m["url"]);
             }
 
             if(m["name"]){
@@ -183,6 +184,7 @@ class IMDBExample{
                 let url = new schema.UrlProperty();
                 url.setUrl(m["url"]);
                 series.addUrl(url);
+                series.setId(m["url"]);
             }
 
             if(m["name"]){
@@ -307,6 +309,7 @@ class IMDBExample{
                 let url = new schema.UrlProperty();
                 url.setUrl(m["url"]);
                 episode.addUrl(url);
+                episode.setId(m["url"]);
             }
 
             if(m["name"]){
@@ -413,6 +416,7 @@ class IMDBExample{
                 let url = new schema.UrlProperty();
                 url.setUrl(a["url"]);
                 person.addUrl(url);
+                person.setId(a["url"]);
             }
 
             if(a["name"]){
@@ -439,6 +443,7 @@ class IMDBExample{
                 let url = new schema.UrlProperty();
                 url.setUrl(a["url"]);
                 person.addUrl(url);
+                person.setId(a["url"]);
             }
 
             if(a["name"]){
@@ -467,6 +472,7 @@ class IMDBExample{
                     let url = new schema.UrlProperty();
                     url.setUrl(a["url"]);
                     person.addUrl(url);
+                    person.setId(a["url"]);
                 }
     
                 if(a["name"]){
@@ -484,6 +490,7 @@ class IMDBExample{
                     let url = new schema.UrlProperty();
                     url.setUrl(a["url"]);
                     organization.addUrl(url);
+                    organization.setId(a["url"]);
                 }
     
                 if(a["name"]){
@@ -632,6 +639,7 @@ class IMDBExample{
                 let embedUrl = new schema.EmbedUrlProperty();
                 embedUrl.setUrl(a["embed_url"]);
                 videoObject.addEmbedUrl(embedUrl);
+                videoObject.setId(a["embed_url"]);
             }
 
             if(a["thumbnail_url"]){
