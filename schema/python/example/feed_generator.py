@@ -68,6 +68,7 @@ class IMDBExample:
 
             if m[0]:
                 movie.url.add().url = m[0]
+                movie.id = m[0]
 
             if m[1]:
                 movie.name.add().text = m[1]
@@ -141,6 +142,7 @@ class IMDBExample:
             tv_series = list_item.item.add().tv_series
 
             if m[0]:
+                tv_series.id = m[0]
                 tv_series.url.add().url = m[0]
 
             if m[1]:
@@ -161,8 +163,6 @@ class IMDBExample:
 
             if m[6]:
                 tv_series.keywords.add().text = m[6]
-
-            # TODO: Duration
 
             if m[8]:
                 aggregate_rating = tv_series.aggregate_rating.add().aggregate_rating
@@ -213,6 +213,7 @@ class IMDBExample:
 
             if m[0]:
                 tv_episode.url.add().url = m[0]
+                tv_episode.id = m[0]
 
             if m[1]:
                 tv_episode.name.add().text = m[1]
@@ -342,6 +343,7 @@ class IMDBExample:
                 person.name.add().text = x[1]
             if x[0]:
                 person.url.add().url = x[0]
+                person.id = x[0]
 
         return entity
 
@@ -365,6 +367,7 @@ class IMDBExample:
                 person.name.add().text = x[1]
             if x[0]:
                 person.url.add().url = x[0]
+                person.id = x[0]
 
         return entity
 
@@ -389,12 +392,14 @@ class IMDBExample:
                     person.name.add().text = x[1]
                 if x[0]:
                     person.url.add().url = x[0]
+                    person.id = x[0]
             elif x[2] == "ORGANIZATION":
                 organization = entity.creator.add().organization
                 if x[1]:
                     organization.name.add().text = x[1]
                 if x[0]:
                     organization.url.add().url = x[0]
+                    organization.id = x[0]
 
         return entity
 
@@ -466,6 +471,7 @@ class IMDBExample:
             
             if x[1]:
                 trailer.embed_url.add().url = x[1]
+                trailer.id = x[1]
             
             if x[2]:
                 trailer.thumbnail_url.add().url = x[2]
