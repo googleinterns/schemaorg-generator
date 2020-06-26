@@ -123,7 +123,9 @@ class JSONLDSerializer {
             throw("Date with empty fields found.");
         }
         else{
-            let dt = new Date(obj.array[0], obj.array[1], obj.array[2]);
+            let dt = moment.utc([obj.array[0],obj.array[1]-1, obj.array[2] ]);
+            if(!dt.isValid()) throw("Invalid Date Found.");
+            
             return dt.toISOString().substring(0, 10);
         }
     }
@@ -138,9 +140,26 @@ class JSONLDSerializer {
             throw("Time with empty fields found.");
         }
         else{
-            // TODO: Timezone
-            let dt = new Date(2000, 1, 1, obj.array[0], obj.array[1], obj.array[2]);
-            return dt.toISOString().substring(11, 19);
+            let dt = moment.utc({ hour:obj.array[0], minute:obj.array[1], second: obj.array[2] });
+            if(!dt.isValid()) throw("Invalid Time Found.");
+            
+            let dtString = dt.toISOString();
+            
+            if(obj.array[3]){
+                dtString = dtString.substr(0, 19);
+                dtString = dtString + obj.array[3];
+                dt = moment(dtString, moment.ISO_8601);
+                
+                if(dt.isValid()){
+                    return dtString.substr(11);
+                }
+                else{
+                    throw("Invalid Timezone.");
+                }
+            }
+            else{
+                return dtString.substr(11, 19);
+            }
         }
     }
 
@@ -156,9 +175,29 @@ class JSONLDSerializer {
                 throw("Datetime with empty fields found.");
         }
         else{
-            // TODO: Timezone
-            let dt = new Date(obj.array[0][0],obj.array[0][1],obj.array[0][2]
-                                ,obj.array[1][0],obj.array[1][1],obj.array[1][2]);
+
+            let dt = moment.utc([ obj.array[0][0], obj.array[0][1]-1, obj.array[0][2],
+                                obj.array[1][0], obj.array[1][1], obj.array[1][2]]);
+
+            
+            if(!dt.isValid()) throw("Invalid DateTime Found.");
+            let dtString = dt.toISOString();
+            
+            if(obj.array[1][3]){
+                dtString = dtString.substr(0, 19);
+                dtString = dtString + obj.array[1][3];
+                dt = moment(dtString, moment.ISO_8601);
+                
+                if(dt.isValid()){
+                    return dtString;
+                }
+                else{
+                    throw("Invalid Timezone.");
+                }
+            }
+            else{
+                return dtString.substr(0, 19);
+            }
 
             return dt.toISOString().substr(0, 19);
         }
