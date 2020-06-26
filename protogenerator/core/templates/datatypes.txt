@@ -9,7 +9,6 @@ message Date {
 	int32 year = 1;
 	int32 month = 2;
 	int32 day = 3;
-	Timezone timezone = 4;
 }
 
 message Time {
@@ -17,11 +16,7 @@ message Time {
 	int32 hours = 1;
 	int32 minutes = 2;
 	int32 seconds = 3;
-	Timezone timezone = 4;
-}
-
-message Timezone {
-	string iana_id = 1;
+	string timezone = 4;
 }
 
 message Duration {
