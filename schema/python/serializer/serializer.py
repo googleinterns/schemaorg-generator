@@ -117,7 +117,7 @@ class JSONLDSerializer():
             value = getattr(obj, desciptor.name)
             return self.proto_to_dict(value, schema)
 
-    def __parse_date(self, obj):
+    def __date_to_string(self, obj):
         """Convert a protobuf date object to python date object.
 
         Args:
@@ -131,12 +131,11 @@ class JSONLDSerializer():
         year = getattr(obj, 'year')
         month = getattr(obj, 'month')
         day = getattr(obj, 'day')
-        # Need to handle timezone
 
         date = datetime.date(year=year, month=month, day=day)
-        return date
+        return date.isoformat()
 
-    def __parse_time(self, obj):
+    def __time_to_string(self, obj):
         """Convert a protobuf time object to python time object.
 
         Args:
@@ -150,10 +149,16 @@ class JSONLDSerializer():
         hours = getattr(obj, 'hours')
         minutes = getattr(obj, 'minutes')
         seconds = getattr(obj, 'seconds')
-        # Need to handle timezone
+        timezone = getattr(obj, 'timezone')
 
         time = datetime.time(hour=hours, minute=minutes, second=seconds)
-        return time
+        
+        if timezone:
+            time_string = time.isoformat()
+            time_string = time_string + timezone
+            time = datetime.time.fromisoformat(time_string)
+        
+        return time.isoformat()
 
     def __datetime_to_string(self, obj):
         """Convert a protobuf datetime object to isostring format.
@@ -166,18 +171,28 @@ class JSONLDSerializer():
             date_time: Isostring format of proto datetime.
         """
 
-        date = self.__parse_date(getattr(obj, 'date'))
-        time = self.__parse_time(getattr(obj, 'time'))
+        year = getattr(getattr(obj, 'date'), 'year')
+        month = getattr(getattr(obj, 'date'), 'month')
+        day = getattr(getattr(obj, 'date'), 'day')
+        hours = getattr(getattr(obj, 'time'), 'hours')
+        minutes = getattr(getattr(obj, 'time'), 'minutes')
+        seconds = getattr(getattr(obj, 'time'), 'seconds')
+        timezone = getattr(getattr(obj, 'time'), 'timezone')
 
         date_time = datetime.datetime(
-            year=date.year,
-            month=date.month,
-            day=date.day,
-            hour=time.hour,
-            minute=time.minute,
-            second=time.second).isoformat()
+            year=year,
+            month=month,
+            day=day,
+            hour=hours,
+            minute=minutes,
+            second=seconds)
+        
+        if timezone:
+            date_time_string = date_time.isoformat()
+            date_time_string = date_time_string + timezone
+            date_time = datetime.datetime.fromisoformat(date_time_string)
 
-        return date_time
+        return date_time.isoformat()
 
     def __duration_to_string(self, obj):
         """Convert a proto duration object to ISO8601 string.
@@ -239,18 +254,25 @@ class JSONLDSerializer():
         messageType = obj.DESCRIPTOR.GetOptions().Extensions[schema.type]
         if messageType == 'Property':
             return self.__get_property_value(obj, schema)
+        
         elif messageType == 'EnumWrapper':
             return self.__enum_to_dict(obj, schema)
+        
         elif messageType == 'DatatypeDate':
-            return self.__parse_date(obj).isoformat()
+            return self.__date_to_string(obj)
+        
         elif messageType == 'DatatypeTime':
-            return self.__parse_time(obj).isoformat()
+            return self.__time_to_string(obj)
+        
         elif messageType == 'DatatypeDateTime':
             return self.__datetime_to_string(obj)
+        
         elif messageType == 'DatatypeQuantitaive':
             return self.__quantitative_to_string(obj)
+        
         elif messageType == 'DatatypeDuration':
             return self.__duration_to_string(obj)
+        
         else:
             return self.__class_to_dict(obj, schema)
 
