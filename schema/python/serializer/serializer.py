@@ -267,7 +267,7 @@ class JSONLDSerializer():
         elif messageType == 'DatatypeDateTime':
             return self.__datetime_to_string(obj)
         
-        elif messageType == 'DatatypeQuantitaive':
+        elif messageType == 'DatatypeQuantitative':
             return self.__quantitative_to_string(obj)
         
         elif messageType == 'DatatypeDuration':
