@@ -17,9 +17,27 @@ import core.descriptors.property_descriptor as property_descriptor
 import utils.utils as utils
 
 def test_property_descriptor():
+    """Test the property descriptor.
+
+    Procedure:
+        - Create a list of defined classes.
+        - Create a list of field types that include defined classes, undefined classes and datatypes.
+        - Create a property descriptor from the class_list and field_list.
+        - Create multiline comments to be added.
+        - Call to_proto function along with comments to get the protobuf code in string format.
+    
+    Verification:
+        - Check if the classes are sorted in alphabetical order.
+        - Check if the class has a (type) option with value 'Property'.
+        - Check if multiline comments are properly formatted.
+        - Check if datatypes are mapped to their corresponding proto primitves.
+        - Check if undefined classes are converted to string.
+        - Check if all defined classes are used as such.
+        - Check if all fields are enclosed inside a oneof.
+
+    """
 
     property_name = "foo"
-    package_name = "schemaorg"
 
     class_list = [
         "LoremIpsum",
@@ -58,7 +76,7 @@ def test_property_descriptor():
     }
     """
 
-    p = property_descriptor.PropertyDescriptor(property_name, field_types, class_list, package_name)
+    p = property_descriptor.PropertyDescriptor(property_name, field_types, class_list)
     output = p.to_proto(comment)
 
     expected = " ".join(expected.split())
@@ -68,8 +86,26 @@ def test_property_descriptor():
 
 
 def test_class_descriptor():
+    """Test the class descriptor.
 
-    package_name = "schemaorg"
+    Procedure:
+        - Create a list of field_types
+        - The field type shud be mapped to their parents using utils.PropertyToParent class.
+        - Create a class descriptor from the field_list.
+        - Create multiline comments to be added.
+        - Call to_proto function along with comments to get the protobuf code in string format.
+    
+    Verification:
+        - Check if the first field is id and is a singular field.
+        - Check if the class has a (type) option with value as the name of the class.
+        - Check if multiline comments are properly formatted.
+        - Check if the properties that are not inherited appear before the properties that are inherited.
+        - Check if the all the properties that belong to same parent appear together..
+        - Check if all the properties are repeated fields.
+        - Check if every property have (json_name) option with value as the name of property.
+    
+    """
+
     class_name = "Foo"
 
     field_types = [
@@ -102,7 +138,7 @@ def test_class_descriptor():
     }
     """
 
-    c = class_descriptor.ClassDescriptor(class_name, field_types, package_name)
+    c = class_descriptor.ClassDescriptor(class_name, field_types)
     output = c.to_proto(comment)
 
     expected = " ".join(expected.split())
@@ -111,7 +147,36 @@ def test_class_descriptor():
     assert output == expected, "Test for Class Descriptor has failed."
 
 def test_enum_descriptor():
-    package_name = "schemaorg"
+    """Test the enum descriptor.
+
+    Procedure:
+        - Create a list of field_types
+        - The field type shud be mapped to their parents using utils.PropertyToParent class.
+        - Create a list values that enumeration can have
+        - Create a enum descriptor from the field_list and enum_values.
+        - Create multiline comments to be added.
+        - Call to_proto function along with comments to get the protobuf code in string format.
+    
+    Verification:
+        - Check if two messages are generated.
+        - Check if the first message has a nested enum definition.
+        - Check if the nested enum defenition has all the values in enum_values along with default unknown value,
+        - Check if the every value in enum definition has a option (schemaorg_value) pointing to schem.org url.
+        - Check the following for first message
+            * Check if the first field is id and is a singular field.
+            * Check if the message has a (type) option with value as the name of the class.
+            * Check if multiline comments are properly formatted.
+            * Check if the properties that are not inherited appear before the properties that are inherited.
+            * Check if the all the properties that belong to same parent appear together..
+            * Check if all the properties are repeated fields.
+            * Check if every property have (json_name) option with value as the name of property.
+        - Check the following for second message.
+            * Check if the first field is the enum defined in first message.
+            * Check if the second field is the first message itself.
+            * Check if the message has a (type) option with value as 'EnumWrapper'.
+            * Check if all fields are enclosed inside a oneof.
+        
+    """
     class_name = "Foo"
 
     field_types = [
@@ -167,7 +232,7 @@ def test_enum_descriptor():
     }
     """
 
-    e = enum_descriptor.EnumDescriptor(class_name, field_types,enum_values, package_name)
+    e = enum_descriptor.EnumDescriptor(class_name, field_types,enum_values)
     output = e.to_proto(comment)
 
     expected = " ".join(expected.split())
