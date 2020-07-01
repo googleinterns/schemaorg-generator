@@ -4,6 +4,20 @@ import os
 import json
 
 def test_item_list():
+    """Test serialization of ItemList using feed serializer.
+    Procedure:
+        - Create a new feed serializer.
+        - Create multiple entities of any type.
+        - Call serializer.add_item along with schema and the entity for each entity.
+        - Close the serializer.
+    
+    Verification:
+        - Check if all the entities are enclosed inside ListItem.
+        - Check if all the ListItem has position fields set in order.
+        - Check if all the ListItems are enclosed inside an ItemList. 
+        - Check if '@type' field is set properly for ListItem and ItemList.
+    """
+    
     jis = serializer.JSONLDFeedSerializer("./tests/expectedjson/test_jsonld_item_list_out.json", feed_type="ItemList")
 
     for i in range(5):
@@ -28,6 +42,19 @@ def test_item_list():
     assert output == expected, "Error in Serialization of ItemList."
 
 def test_data_feed():
+    """Test serialization of DataFeed using feed serializer.
+    Procedure:
+        - Create a new feed serializer.
+        - Create multiple entities of any type.
+        - Call serializer.add_item along with schema and the entity for each entity.
+        - Close the serializer.
+    
+    Verification:
+        - Check if all the entities are enclosed inside DataFeedItem.
+        - Check if all the DataFeedItem are enclosed inside an DataFeed.
+        - Check if '@type' field is set properly for DataFeed and DataFeedItem. 
+    """
+    
     jis = serializer.JSONLDFeedSerializer("./tests/expectedjson/test_jsonld_data_feed_out.json", feed_type="DataFeed")
 
     for i in range(5):
