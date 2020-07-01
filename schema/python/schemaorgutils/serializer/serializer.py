@@ -281,24 +281,33 @@ class JSONLDFeedSerializer(JSONLDSerializer):
 
     Attributes:
         _validator (set): Set of primitive types in python.
-        _list_type (string): The type of feed that has to be generated (ItemList/DateFeed).
+        _feed_type (string): The type of feed that has to be generated (ItemList/DateFeed).
         _count (int): The count of items added to the feed.
         _outfile (File): The file where the feed has to be generated.
     """
 
-    def __init__(self, outfile, list_type ="ItemList" , validator = None):
+    def __init__(self, outfile, feed_type ="ItemList" , validator = None):
             
             JSONLDSerializer.__init__(self)
             assert isinstance(outfile, str), "Invalid parameter 'outfile' must be 'str'."
+            assert feed_type == "ItemList" or feed_type == "DataFeed", "feed_type must be 'ItemList' or 'DataFeed'."
 
             self._validator = validator
-            self._list_type = list_type
+            self._feed_type = feed_type
             self._count = 0
-            self._outfile  = open(outfile, "wb")
-            self._outfile.write(bytes("{\n", 'utf-8'))
-            self._outfile.write(bytes("\t\"@context\":\"https://schema.org\",\n", 'utf-8'))
-            self._outfile.write(bytes("\t\"@type\":\"ItemList\",\n", 'utf-8'))
-            self._outfile.write(bytes("\t\"itemListElement\":[", 'utf-8'))
+            self._outfile  = open(outfile, "w")
+
+            if self._feed_type == "ItemList":
+                self._outfile.write("{\n")
+                self._outfile.write("\t\"@context\":\"https://schema.org\",\n")
+                self._outfile.write("\t\"@type\":\"ItemList\",\n")
+                self._outfile.write("\t\"itemListElement\":[")
+            elif self._feed_type == "DataFeed":
+                self._outfile.write("{\n")
+                self._outfile.write("\t\"@context\":\"https://schema.org\",\n")
+                self._outfile.write("\t\"@type\":\"DataFeed\",\n")
+                self._outfile.write("\t\"dataFeedElement\":[")
+
 
     def add_item(self, obj, schema):
         """Call self.proto_to_dict serialize the item and write to file.
@@ -310,14 +319,27 @@ class JSONLDFeedSerializer(JSONLDSerializer):
         
         assert self._outfile.closed == False, "The serializer had been already closed."
 
-        obj = self.proto_to_dict(obj, schema)
+        if self._feed_type == "ItemList":
+            element = schema.ListItem()
+        elif self._feed_type == "DataFeed":
+            element = schema.DataFeedItem()
 
-        if (not self._validator) or (self._validator.add_entity(obj)):
-            obj = json.dumps(obj, indent=4, sort_keys=True)
-            obj = "\n" + obj
-            obj = obj.replace("\n", "\n\t\t")
-            obj = obj + ","
-            self._outfile.write(bytes(obj, 'utf-8'))
+        element = self.proto_to_dict(element, schema)
+        obj = self.proto_to_dict(obj, schema)
+        element["item"] = obj
+
+        if self._feed_type == "ItemList":
+            element["position"] = self._count + 1
+
+        if (not self._validator) or (self._validator.add_entity(element["item"])):
+            element = json.dumps(element, indent=4, sort_keys=True)
+            if self._count:
+                element = ",\n" + element
+            else:
+                element = "\n" + element
+            
+            element = element.replace("\n", "\n\t\t")
+            self._outfile.write(element)
             self._count = self._count + 1
         
     
@@ -325,12 +347,9 @@ class JSONLDFeedSerializer(JSONLDSerializer):
         """Close the serializer. Close the validator if specified."""  
 
         assert self._outfile.closed == False, "The serializer had been already closed."
-
-        if self._count:
-            self._outfile.seek(-1, os.SEEK_CUR)
         
-        self._outfile.write(bytes("\n\t]\n", 'utf-8'))
-        self._outfile.write(bytes("}\n", 'utf-8'))
+        self._outfile.write("\n\t]\n")
+        self._outfile.write("}\n")
         self._outfile.close()
 
         if self._validator:
