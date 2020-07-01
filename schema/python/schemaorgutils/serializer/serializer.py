@@ -276,71 +276,63 @@ class JSONLDSerializer():
         else:
             return self.__class_to_dict(obj, schema)
 
-class JSONLDItemListSerializer(JSONLDSerializer):
+class JSONLDFeedSerializer(JSONLDSerializer):
+    """The JSONLDFeedSerializer generates serialized JSONLD output for entities as a ItemList or DataFeed types.
 
-    def __init__(self, outfile, validator = None):
+    Attributes:
+        _validator (set): Set of primitive types in python.
+        _list_type (string): The type of feed that has to be generated (ItemList/DateFeed).
+        _count (int): The count of items added to the feed.
+        _outfile (File): The file where the feed has to be generated.
+    """
+
+    def __init__(self, outfile, list_type ="ItemList" , validator = None):
             
             JSONLDSerializer.__init__(self)
             assert isinstance(outfile, str), "Invalid parameter 'outfile' must be 'str'."
 
-            self.validator = validator
-            self.count = 0
-            self.outfile  = open(outfile, "wb")
-            self.outfile.write(bytes("{\n", 'utf-8'))
-            self.outfile.write(bytes("\t\"@context\":\"https://schema.org\",\n", 'utf-8'))
-            self.outfile.write(bytes("\t\"@type\":\"ItemList\",\n", 'utf-8'))
-            self.outfile.write(bytes("\t\"itemListElement\":[", 'utf-8'))
+            self._validator = validator
+            self._list_type = list_type
+            self._count = 0
+            self._outfile  = open(outfile, "wb")
+            self._outfile.write(bytes("{\n", 'utf-8'))
+            self._outfile.write(bytes("\t\"@context\":\"https://schema.org\",\n", 'utf-8'))
+            self._outfile.write(bytes("\t\"@type\":\"ItemList\",\n", 'utf-8'))
+            self._outfile.write(bytes("\t\"itemListElement\":[", 'utf-8'))
 
-    def add_item(self, list_item, schema):
+    def add_item(self, obj, schema):
+        """Call self.proto_to_dict serialize the item and write to file.
+
+        Args:
+            obj (protobuf object): Protobuf object that needs to be serialized.
+            schema (module): Module containing compiled proto schema.
+        """  
         
-        assert self.outfile.closed == False, "The serializer had been already closed."
-        assert isinstance(list_item, schema.ListItem), "'list_item' must be an instance of schema.ListItem"
+        assert self._outfile.closed == False, "The serializer had been already closed."
 
-        list_item = self.proto_to_dict(list_item, schema)
+        obj = self.proto_to_dict(obj, schema)
 
-        if (not self.validator) or (self.validator.add_entity(list_item)):
-            list_item = json.dumps(list_item, indent=4, sort_keys=True)
-            list_item = "\n" + list_item
-            list_item = list_item.replace("\n", "\n\t\t")
-            list_item = list_item + ","
-            self.outfile.write(bytes(list_item, 'utf-8'))
-            self.count = self.count + 1
+        if (not self._validator) or (self._validator.add_entity(obj)):
+            obj = json.dumps(obj, indent=4, sort_keys=True)
+            obj = "\n" + obj
+            obj = obj.replace("\n", "\n\t\t")
+            obj = obj + ","
+            self._outfile.write(bytes(obj, 'utf-8'))
+            self._count = self._count + 1
         
     
     def close(self):
+        """Close the serializer. Close the validator if specified."""  
 
-        assert self.outfile.closed == False, "The serializer had been already closed."
+        assert self._outfile.closed == False, "The serializer had been already closed."
 
-        if self.count:
-            self.outfile.seek(-1, os.SEEK_CUR)
+        if self._count:
+            self._outfile.seek(-1, os.SEEK_CUR)
         
-        self.outfile.write(bytes("\n\t]\n", 'utf-8'))
-        self.outfile.write(bytes("}\n", 'utf-8'))
-        self.outfile.close()
+        self._outfile.write(bytes("\n\t]\n", 'utf-8'))
+        self._outfile.write(bytes("}\n", 'utf-8'))
+        self._outfile.close()
 
-        if self.validator:
-            self.validator.write_report_and_close()
+        if self._validator:
+            self._validator.write_report_and_close()
         
-
-# Test code to be removed later
-# import schema_pb2
-
-# list_item = schema_pb2.ListItem()
-# movie = list_item.item.add().movie
-# actor = movie.actor.add()
-# person = actor.person
-# name = person.name.add()
-# name.text = "Johnny Depp"
-# actor = movie.actor.add()
-# person = actor.person
-# name = person.name.add()
-# name.text = "Penelope Cruz"
-# actor = movie.actor.add()
-# person = actor.person
-# name = person.name.add()
-# name.text = "Ian McShane"
-# movie.id = "id no 1"
-
-# serializer = JSONLDItemListSerializer("./test.json")
-# serializer.add_item(list_item, schema_pb2)
-# serializer.close()
