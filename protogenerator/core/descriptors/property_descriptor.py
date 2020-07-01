@@ -44,20 +44,16 @@ class PropertyDescriptor:
         name (str): Name of the schema property.
         field_types (list[str]): The schema classes/datatypes that are included in range of schema property.
         class_list (list(str)): List of defined classes.
-        package_name (str): Package name for the proto code.
 
     Attributes:
         name (str): Name of the schema property.
         field_types (list[str]): The schema classes/datatypes that are included in range of schema property.
         class_list (list(str)): List of defined classes.
-        package_name (str): Package name for the proto code.
     """
 
-    def __init__(self, name, field_types, class_list, package_name):
+    def __init__(self, name, field_types, class_list):
 
         assert isinstance(name, str), "Invalid parameter 'name' must be 'str'."
-        assert isinstance(
-            package_name, str), "Invalid parameter 'package_name' must be 'str'."
         assert isinstance(
             field_types, list), "Invalid parameter 'field_types' must be 'list'."
         assert isinstance(
@@ -73,7 +69,6 @@ class PropertyDescriptor:
 
         self.name = name
         self.field_types = field_types
-        self.package_name = package_name
         self.class_list = class_list
 
     def to_proto(self, comment):

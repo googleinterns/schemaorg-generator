@@ -21,19 +21,15 @@ class ClassDescriptor:
     Args:
         name (str): Name of the schema class.
         field_types (list[utils.PropertyToParent]): The schema properties that belong to the schema class.
-        package_name (str): Package name for the proto code.
 
     Attributes:
         name (str): Name of the schema class.
         field_types (list[utils.PropertyToParent]): The schema properties that belong to the schema class.
-        package_name (str): Package name for the proto code.
     """
 
-    def __init__(self, name, field_types, package_name):
+    def __init__(self, name, field_types):
 
         assert isinstance(name, str), "Invalid parameter 'name' must be 'str'."
-        assert isinstance(
-            package_name, str), "Invalid parameter 'package_name' must be 'str'."
         assert isinstance(
             field_types, list), "Invalid parameter 'field_types' must be 'list'."
 
@@ -43,7 +39,6 @@ class ClassDescriptor:
 
         self.name = name
         self.field_types = field_types
-        self.package_name = package_name
 
     def to_proto(self, comment):
         """Return proto code for the schema class.

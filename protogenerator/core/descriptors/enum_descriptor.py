@@ -25,20 +25,16 @@ class EnumDescriptor:
         name (str): Name of the schema enumeration.
         field_types (list[utils.PropertyToParent]): The schema properties that belong to the schema enumeration.
         enum_values (list[str]): The possible values of the schema enumeration.
-        package_name (str): Package name for the proto code.
 
     Attributes:
         name (str): Name of the schema enumeration.
         field_types (list[utils.PropertyToParent]): The schema properties that belong to the schema enumeration.
         enum_values (list[str]): The possible values of the schema enumeration.
-        package_name (str): Package name for the proto code.
     """
 
-    def __init__(self, name, field_types, enum_values, package_name):
+    def __init__(self, name, field_types, enum_values):
 
         assert isinstance(name, str), "Invalid parameter 'name' must be 'str'."
-        assert isinstance(
-            package_name, str), "Invalid parameter 'package_name' must be 'str'."
         assert isinstance(
             field_types, list), "Invalid parameter 'field_types' must be 'list'."
         assert isinstance(
@@ -54,7 +50,6 @@ class EnumDescriptor:
 
         self.name = name
         self.field_types = field_types
-        self.package_name = package_name
         self.enum_values = enum_values
 
     def to_proto(self, comment):

@@ -61,11 +61,9 @@ class SchemaGenerator():
         proto_string += self.__get_header(package_name)
         proto_string += self.__get_options()
         proto_string += self.__get_datatypes()
-        proto_string += self.__class_to_proto(
-            class_to_prop, enumerations, package_name)
-        proto_string += self.__enum_to_proto(
-            class_to_prop, enumerations, package_name)
-        proto_string += self.__prop_to_proto(prop_to_class,set(class_to_prop.keys()), package_name)
+        proto_string += self.__class_to_proto(class_to_prop, enumerations)
+        proto_string += self.__enum_to_proto(class_to_prop, enumerations)
+        proto_string += self.__prop_to_proto(prop_to_class,set(class_to_prop.keys()))
 
         outFile.write(proto_string)
         outFile.close()
@@ -75,14 +73,13 @@ class SchemaGenerator():
         json.dump(json_descriptor, outFile, indent=4)
         outFile.close()
 
-    def __class_to_proto(self, class_to_prop, enumerations, package_name):
+    def __class_to_proto(self, class_to_prop, enumerations):
         """Call ClassDescriptor.to_proto() and get proto code for every schema
         class.
 
         Args:
             class_to_prop (dict(set): Dictionary containing set of properties for every class.
             enumerations (set): Set containing the enumerations in the schema.
-            package_name (str): Package name for the proto code.
 
         Returns:
             proto_class: The proto code for all the schema classes in class_to_prop as a string.
@@ -100,19 +97,18 @@ class SchemaGenerator():
                 soup = BeautifulSoup(comment, "html.parser")
                 comment = soup.get_text()
 
-                proto_class += class_descriptor.ClassDescriptor(x, list(class_to_prop[x]), package_name).to_proto(comment)
+                proto_class += class_descriptor.ClassDescriptor(x, list(class_to_prop[x])).to_proto(comment)
                 proto_class += '\n'
 
         return proto_class
 
-    def __prop_to_proto(self, prop_to_class, class_list, package_name):
+    def __prop_to_proto(self, prop_to_class, class_list):
         """Call PropertyDescriptor.to_proto() and get proto code for every
         schema property.
 
         Args:
             prop_to_class (dict(set)): Dictionary containing range of class/datatypes for every property.
             class_list (set): Set of defined classes.
-            package_name (str): Package name for the proto code.
 
         Returns:
             proto_property: The proto code for all the schema property in prop_to_class as a string.
@@ -128,19 +124,18 @@ class SchemaGenerator():
                 soup = BeautifulSoup(comment, "html.parser")
                 comment = soup.get_text()
 
-                proto_property += property_descriptor.PropertyDescriptor(x, list(prop_to_class[x]),list(class_list), package_name).to_proto(comment)
+                proto_property += property_descriptor.PropertyDescriptor(x, list(prop_to_class[x]),list(class_list)).to_proto(comment)
                 proto_property += '\n'
 
         return proto_property
 
-    def __enum_to_proto(self, class_to_prop, enumerations, package_name):
+    def __enum_to_proto(self, class_to_prop, enumerations):
         """Call EnumDescriptor.to_proto() and get proto code for every schema
         enumeration.
 
         Args:
             class_to_prop (dict(set): Dictionary containing set of properties for every class.
             enumerations (set): Set containing the enumerations in the schema.
-            package_name (str): Package name for the proto code.
 
         Returns:
             proto_enum: The proto code for all the schema enumerations in enumerations as a string.
@@ -163,7 +158,7 @@ class SchemaGenerator():
             comment = soup.get_text()
 
             proto_enum += enum_descriptor.EnumDescriptor(x,list(
-                class_to_prop[x]), list(enum_values), package_name).to_proto(comment)
+                class_to_prop[x]), list(enum_values)).to_proto(comment)
             proto_enum += '\n'
 
         return proto_enum
