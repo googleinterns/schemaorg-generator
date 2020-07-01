@@ -278,11 +278,12 @@ class JSONLDSerializer():
 
 class JSONLDItemListSerializer(JSONLDSerializer):
 
-    def __init__(self, outfile):
+    def __init__(self, outfile, validator = None):
             
             JSONLDSerializer.__init__(self)
             assert isinstance(outfile, str), "Invalid parameter 'outfile' must be 'str'."
 
+            self.validator = validator
             self.count = 0
             self.outfile  = open(outfile, "wb")
             self.outfile.write(bytes("{\n", 'utf-8'))
@@ -296,12 +297,14 @@ class JSONLDItemListSerializer(JSONLDSerializer):
         assert isinstance(list_item, schema.ListItem), "'list_item' must be an instance of schema.ListItem"
 
         list_item = self.proto_to_dict(list_item, schema)
-        list_item = json.dumps(list_item, indent=4, sort_keys=True)
-        list_item = "\n" + list_item
-        list_item = list_item.replace("\n", "\n\t\t")
-        list_item = list_item + ","
-        self.outfile.write(bytes(list_item, 'utf-8'))
-        self.count = self.count + 1
+
+        if (not self.validator) or (self.validator.add_entity(list_item)):
+            list_item = json.dumps(list_item, indent=4, sort_keys=True)
+            list_item = "\n" + list_item
+            list_item = list_item.replace("\n", "\n\t\t")
+            list_item = list_item + ","
+            self.outfile.write(bytes(list_item, 'utf-8'))
+            self.count = self.count + 1
         
     
     def close(self):
@@ -314,11 +317,16 @@ class JSONLDItemListSerializer(JSONLDSerializer):
         self.outfile.write(bytes("\n\t]\n", 'utf-8'))
         self.outfile.write(bytes("}\n", 'utf-8'))
         self.outfile.close()
+
+        if self.validator:
+            self.validator.write_report_and_close()
         
 
 # Test code to be removed later
 # import schema_pb2
-# movie = schema_pb2.Movie()
+
+# list_item = schema_pb2.ListItem()
+# movie = list_item.item.add().movie
 # actor = movie.actor.add()
 # person = actor.person
 # name = person.name.add()
@@ -333,7 +341,6 @@ class JSONLDItemListSerializer(JSONLDSerializer):
 # name.text = "Ian McShane"
 # movie.id = "id no 1"
 
-# serializer = JSONLDSerializer()
-# serializer.write(movie, "./test.json", schema_pb2)
-
-# print(type(schema_pb2))
+# serializer = JSONLDItemListSerializer("./test.json")
+# serializer.add_item(list_item, schema_pb2)
+# serializer.close()

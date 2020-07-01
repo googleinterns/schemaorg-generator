@@ -16,7 +16,7 @@ import json
 import mysql
 import feed_generator
 import schema_pb2
-# import /path/to/serializer as serializer
+import schemaorgutils.serializer.serializer as serializer
 
 def main():
     with open('./config.json') as f:
