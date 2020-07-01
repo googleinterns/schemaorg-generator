@@ -21,15 +21,33 @@ from pyshacl import validate
 from jinja2 import Environment, FileSystemLoader
 
 class SchemaValidator():
+    """The SchemaValidator validates the entities against a constraints graph and generate a html report for the validation result.
+
+    Attributes:
+        reports (dict(list(ResultRow))): A dictionary mapping list of all error results to an entity type.
+        _constraints_file (str): The path to constraints file containing shacl validations.
+        _report_file (str): The path to file where the output report has to be generated.
+        _position (int): The total number of entities validated.
+        _is_closed (bool): The status of validator.
+    """
+    
     def __init__(self, constraints_file, report_file):
         
-        self.constraints_file = constraints_file
-        self.report_file = report_file
         self.reports = dict()
-        self.position = 0
-        self.is_closed = False
+        self._constraints_file = constraints_file
+        self._report_file = report_file
+        self._position = 0
+        self._is_closed = False
 
-    def add_ids(self, entity):
+    def __add_ids(self, entity):
+        """Add uids to every entity in the data graph to be validated.
+
+        Args:
+            entity (dict): The entity to which uids are to be added.
+        
+        Returns:
+            dict: The entity after adding uids.
+        """
 
         if not isinstance(entity, dict):
             return entity
@@ -37,13 +55,21 @@ class SchemaValidator():
             entity["@id"] = "/schemavalidator/" + str(uuid.uuid4())
             
             for key in sorted(entity.keys()):
-                entity[key] = self.add_ids(entity[key])
+                entity[key] = self.__add_ids(entity[key])
             
             return entity
 
     def add_entity(self, entity):
+        """Add an entity that has to be validated.
 
-        assert self.is_closed == False, "Validator has already been closed."
+        Args:
+            entity (dict): The entity that has to be validated.
+        
+        Returns:
+            bool: The conformance of entity to the constraints.
+        """
+
+        assert self._is_closed == False, "Validator has already been closed."
 
         typ = entity["@type"]
 
@@ -54,16 +80,16 @@ class SchemaValidator():
             for x in entity["dataFeedElement"]:
                 self.add_entity(x["item"])
         else:
-            self.position = self.position + 1
+            self._position = self._position + 1
             id = ""
             if "@id" in entity:
                 id = "Id: " + entity["@id"]
             else:
-                id = "Position: " + str(self.position)
+                id = "Position: " + str(self._position)
             
 
             entity = json.loads(json.dumps(entity))
-            entity = self.add_ids(entity)
+            entity = self.__add_ids(entity)
             g = rdflib.Graph()
             entity["@context"] = {}
             entity["@context"]["@vocab"] = "http://schema.org/"
@@ -74,7 +100,7 @@ class SchemaValidator():
 
             g.serialize("test.nt", format = "nt")
 
-            _, results_graph, _ = validate(g, shacl_graph=self.constraints_file)
+            _, results_graph, _ = validate(g, shacl_graph=self._constraints_file)
 
             start_nodes = list()
             conforms = True
@@ -84,12 +110,24 @@ class SchemaValidator():
                     start_nodes.append(r)
 
             for r in start_nodes:
-                conforms = (conforms and self.add_report(results_graph, r, typ, "", id))
+                conforms = (conforms and self.__add_report(results_graph, r, typ, "", id))
 
             return conforms
 
 
-    def add_report(self, graph, result_id, typ, path, src_identifier):
+    def __add_report(self, graph, result_id, typ, path, src_identifier):
+        """Perform a DFS over the results. Identify the root cause of the validation error. Add the cause to reports.
+
+        Args:
+            graph (rdflib.Graph): The result graph representing the validation errors.
+            result_id (string): The id of result that is being inspected.
+            typ (string): The @type of the main entity that is being validated.
+            path (string): The path from the main entity to the cause of error.
+            src_identifier (string): The @id of the main entity that is being validated.
+        
+        Returns:
+            bool: The conformance of entity that is validated by the result which is identified by result_id.
+        """
 
         attr = graph.value(result_id, constants.result_constants["ResultPath"], None)
         attr = utils.strip_url(attr)
@@ -123,14 +161,16 @@ class SchemaValidator():
                     next_ids.append(r)
                 
             for r in next_ids:
-                conforms = (conforms and self.add_report(graph, r, typ, path + "." + attr, src_identifier))
+                conforms = (conforms and self.__add_report(graph, r, typ, path + "." + attr, src_identifier))
             
         
         return conforms
 
 
     def write_report_and_close(self):
-        assert self.is_closed == False, "Validator has already been closed."
+        """Generate a report, write it to file and close the validator."""
+
+        assert self._is_closed == False, "Validator has already been closed."
         
         this_folder = os.path.dirname(os.path.abspath(__file__))
         templates_folder = os.path.join(this_folder, 'templates')
@@ -141,15 +181,7 @@ class SchemaValidator():
 
         out_html = env.get_template('report.html').render(results = self.reports)
 
-        f = open(self.report_file, "w")
+        f = open(self._report_file, "w")
         f.write(out_html)
         f.close()
         
-
-    
-# s = SchemaValidator("./movie_constraints.ttl")
-# with open('./movie_single.json') as f:
-#     data = json.load(f)
-
-# print(s.add_entity(data))
-# s.get_report_and_close("./report.html")
