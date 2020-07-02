@@ -5,7 +5,7 @@ message {{name + 'Class'}} {
 		UNKNOWN = 0 [(schemaorg_value)="Unknown"];
         {% set enum_index = namespace(value=1) %}
         {% for x in sorted(enum_values) %}
-		{{get_enum_value_name(x)}} = {{enum_index.value}} [(schemaorg_value) = "https://schema.org/{{x}}"];
+		{{get_enum_value_name(x)}} = {{enum_index.value}} [(schemaorg_value) = "http://schema.org/{{x}}"];
         {% set enum_index.value = enum_index.value + 1 %}
 		{% endfor %}
 	}
