@@ -13,11 +13,7 @@
 // limitations under the License.
 class IMDBExample{
 
-    constructor(){
-        this.position = 1;
-    }
-
-    async moviesToProto(query, schema, itemList){
+    async moviesToProto(query, schema, serializer, schemaDescriptor){
 
         let q = `SELECT 
                     url, 
@@ -38,16 +34,6 @@ class IMDBExample{
         let movies = await query(q);
 
         for(let m of movies){
-            let itemListElement = new schema.ItemListElementProperty();
-            let listItem = new schema.ListItem();
-
-            let position = new schema.PositionProperty();
-            position.setInteger(this.position);
-            this.position = this.position + 1;
-
-            listItem.addPosition(position);
-
-            let item = new schema.ItemProperty();
             let movie = new schema.Movie();
 
             if(m["url"]){
@@ -138,17 +124,12 @@ class IMDBExample{
             movie = await this.addReviews(query, schema, movie, m["url"]);
             movie = await this.addTrailers(query, schema, movie, m["url"]);
 
-
-            item.setMovie(movie);
-            listItem.addItem(item);
-            itemListElement.setListItem(listItem);
-            itemList.addItemListElement(itemListElement);
+            serializer.addItem(movie, "Movie", schemaDescriptor);
 
         }
-        return itemList;
     }
 
-    async seriesToProto(query, schema, itemList){
+    async seriesToProto(query, schema, serializer, schemaDescriptor){
 
         let q = `SELECT 
                     url, 
@@ -168,16 +149,6 @@ class IMDBExample{
         let series = await query(q);
 
         for(let m of series){
-            let itemListElement = new schema.ItemListElementProperty();
-            let listItem = new schema.ListItem();
-
-            let position = new schema.PositionProperty();
-            position.setInteger(this.position);
-            this.position = this.position + 1;
-
-            listItem.addPosition(position);
-
-            let item = new schema.ItemProperty();
             let series = new schema.TVSeries();
 
             if(m["url"]){
@@ -262,17 +233,12 @@ class IMDBExample{
             series = await this.addReviews(query, schema, series, m["url"]);
             series = await this.addTrailers(query, schema, series, m["url"]);
 
-
-            item.setTvSeries(series);
-            listItem.addItem(item);
-            itemListElement.setListItem(listItem);
-            itemList.addItemListElement(itemListElement);
+            serializer.addItem(series, "TVSeries", schemaDescriptor);
 
         }
-        return itemList;
     }
 
-    async episodesToProto(query, schema, itemList){
+    async episodesToProto(query, schema, serializer, schemaDescriptor){
 
         let q = `SELECT 
                     url, 
@@ -293,16 +259,6 @@ class IMDBExample{
         let episodes = await query(q);
 
         for(let m of episodes){
-            let itemListElement = new schema.ItemListElementProperty();
-            let listItem = new schema.ListItem();
-
-            let position = new schema.PositionProperty();
-            position.setInteger(this.position);
-            this.position = this.position + 1;
-
-            listItem.addPosition(position);
-
-            let item = new schema.ItemProperty();
             let episode = new schema.TVEpisode();
 
             if(m["url"]){
@@ -395,13 +351,9 @@ class IMDBExample{
             episode = await this.addTrailers(query, schema, episode, m["url"]);
 
 
-            item.setTvEpisode(episode);
-            listItem.addItem(item);
-            itemListElement.setListItem(listItem);
-            itemList.addItemListElement(itemListElement);
+            serializer.addItem(episode, "TVEpisode", schemaDescriptor);
 
         }
-        return itemList;
     }
 
     async addActors(query, schema, entity, url){
@@ -685,14 +637,12 @@ class IMDBExample{
         return duration;
     }
 
-    async generateFeed(query, schema){
-        let itemList = new schema.ItemList();
+    async generateFeed(query, schema, serializer, schemaDescriptor){
 
-        itemList = await this.moviesToProto(query, schema, itemList);
-        itemList = await this.seriesToProto(query, schema, itemList);
-        itemList = await this.episodesToProto(query, schema, itemList);
+        await this.moviesToProto(query, schema, serializer, schemaDescriptor);
+        await this.seriesToProto(query, schema, serializer, schemaDescriptor);
+        await this.episodesToProto(query, schema, serializer, schemaDescriptor);
 
-        return itemList;
     }
 
 }

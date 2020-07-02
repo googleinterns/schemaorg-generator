@@ -17,7 +17,7 @@ const dump = require("./dump.json");
 const config = require("./config.json");
 const schema = require('./schema_pb');
 const schemaDescriptor = require('./schema_descriptor.json');
-const JSONLDSerializer = require('../serializer').JSONLDSerializer;
+const JSONLDFeedSerializer = require('../serializer').JSONLDFeedSerializer;
 const IMDBExample = require('./feed_generator').IMDBExample;
 const IMDBSeeder = require('./seeder').IMDBSeeder;
 
@@ -44,14 +44,11 @@ async function main () {
     console.log("Database seeding completed.");
 
     let example = new IMDBExample();
+    let serializer = new JSONLDFeedSerializer("./generated-feed.json", feedType="ItemList");
     console.log("Feed generation started.");
-    let itemList = await example.generateFeed(query, schema);
+    await example.generateFeed(query, schema, serializer, schemaDescriptor);
+    serializer.close();
     console.log("Feed generation completed.");
-
-    let serializer = new JSONLDSerializer();
-    console.log("Serializing feed.");
-    await serializer.writeToFile(itemList, "ItemList", schemaDescriptor, "./generated-feed.json");
-    console.log("Serialization completed.");
 
 }
 
