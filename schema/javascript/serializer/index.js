@@ -59,7 +59,6 @@ class JSONLDSerializer {
                         outObj[schemaDescriptor.messages[objectType].fields[i]].push(this.protoToDict(obj.wrappers_[key][j], schemaDescriptor.messages[objectType].fields[i], schemaDescriptor));
                     }
 
-                    outObj[schemaDescriptor.messages[objectType].fields[i]] = outObj[schemaDescriptor.messages[objectType].fields[i]].sort();
                     if(outObj[schemaDescriptor.messages[objectType].fields[i]].length==1){
                         outObj[schemaDescriptor.messages[objectType].fields[i]]=outObj[schemaDescriptor.messages[objectType].fields[i]][0];
                     }
@@ -285,22 +284,33 @@ class JSONLDSerializer {
     
 }
 
-class JSONLDItemListSerializer extends JSONLDSerializer {
+class JSONLDFeedSerializer extends JSONLDSerializer {
 
-    constructor(outFile){
+    constructor(outFile, feedType = "ItemList"){
+        assert(feedType == "ItemList" || feedType == "DataFeed", "feed_type must be 'ItemList' or 'DataFeed'.");
         super();
         this.outFile = fs.openSync(outFile, 'w');
         this.count = 0;
         this.isClosed = false;
+        this.feedType = feedType;
 
-        fs.writeSync(this.outFile, "{\n");
-        fs.writeSync(this.outFile, "\t\"@context\":\"https://schema.org\",\n");
-        fs.writeSync(this.outFile, "\t\"@type\":\"ItemList\",\n");
-        fs.writeSync(this.outFile, "\t\"itemListElement\":[");
+        if(this.feedType == "ItemList"){
+            fs.writeSync(this.outFile, "{\n");
+            fs.writeSync(this.outFile, "\t\"@context\":\"https://schema.org\",\n");
+            fs.writeSync(this.outFile, "\t\"@type\":\"ItemList\",\n");
+            fs.writeSync(this.outFile, "\t\"itemListElement\":[");
+        }
+        else if(this.feedType == "DataFeed"){
+            fs.writeSync(this.outFile, "{\n");
+            fs.writeSync(this.outFile, "\t\"@context\":\"https://schema.org\",\n");
+            fs.writeSync(this.outFile, "\t\"@type\":\"DataFeed\",\n");
+            fs.writeSync(this.outFile, "\t\"dataFeedElement\":[");
+        }
+
 
     }
 
-    addItem(listItem, schema, schemaDescriptor) {
+    addItem(entity, entityType, schemaDescriptor) {
 
         assert(this.isClosed == false, "The serializer has already been closed.");
 
@@ -308,12 +318,24 @@ class JSONLDItemListSerializer extends JSONLDSerializer {
             fs.writeSync(this.outFile, ",");
         }
 
-        let listItemSerialized = super.protoToDict(listItem, "ListItem", schemaDescriptor);
-        listItemSerialized = JSON.stringify(listItemSerialized, null, 4);
-        listItemSerialized = "\n" + listItemSerialized
-        listItemSerialized = listItemSerialized.split("\n").join("\n\t\t");
+        let entitySerialized = super.protoToDict(entity, entityType, schemaDescriptor);
+        let outObj;
 
-        fs.writeSync(this.outFile, listItemSerialized);
+        if(this.feedType == "ItemList"){
+            outObj = {};
+            outObj["@type"] = "ListItem";
+            outObj["item"] = entitySerialized;
+            outObj["position"] = this.count + 1;
+        }
+        else{
+            outObj = entitySerialized
+        }
+
+        outObj = JSON.stringify(outObj, null, 4);
+        outObj = "\n" + outObj
+        outObj = outObj.split("\n").join("\n\t\t");
+
+        fs.writeSync(this.outFile, outObj);
         this.count = this.count + 1;
         
     }
@@ -331,5 +353,4 @@ class JSONLDItemListSerializer extends JSONLDSerializer {
 }
 
 module.exports.JSONLDSerializer = JSONLDSerializer;
-module.exports.JSONLDItemListSerializer = JSONLDItemListSerializer;
-
+module.exports.JSONLDFeedSerializer = JSONLDFeedSerializer;

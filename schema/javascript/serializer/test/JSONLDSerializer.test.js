@@ -266,7 +266,7 @@ describe("Test Serialization of Class", () => {
         };
 
         let output = serializer.protoToDict(cls, "Movie", schemaDescriptor);
-        expect(JSON.stringify(output)).to.equal(JSON.stringify(expected));
+        expect(output).to.eql(expected);
     });
 });
 
@@ -319,6 +319,6 @@ describe("Test Serialization of Enumeration", () => {
         };
 
         let output = serializer.protoToDict(rsvp, "RsvpResponseType", schemaDescriptor);
-        expect(JSON.stringify(output)).to.equal(JSON.stringify(expected));
+        expect(output).to.eql(expected);
     });
 });
