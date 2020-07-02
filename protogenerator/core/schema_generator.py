@@ -356,7 +356,7 @@ class SchemaGenerator():
         for x in sorted(enumerations):
             enum_values = set()
 
-            for ev, _, _ in self.graph.triples((None, constants.schema_constants['Type'], x)):
+            for ev, _, _ in self.graph.triples((None, constants.schema_constants['Type'], utils.add_url(x))):
                 enum_values.add(ev)
             
             o = {}
