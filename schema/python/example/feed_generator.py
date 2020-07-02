@@ -26,32 +26,28 @@ class IMDBExample:
     def __init__(self):
         self._position = 1
     
-    def get_feed(self,cursor, schema):
+    def generate_feed(self,cursor, schema, serializer):
         """Call __movies_to_proto, __series_to_proto, __episodes_to_proto and populate ItemList.
 
         Args:
             cursor (mysql.cursor): Mysql cursor which is used to query the database.
             schema (module): The compiled protobuf schema.
-        
-        Returns:
-            item_list (schema.ItemList): Populated ItemList.
+            serializer (schemaorgutils.JSONLDFeedSerializer): To serialize feed.
+
         """
-        item_list = schema.ItemList()
 
-        item_list = self.__movies_to_proto( cursor, item_list)
-        item_list = self.__series_to_proto( cursor, item_list)
-        item_list = self.__episodes_to_proto( cursor, item_list)
-        return item_list
+        self.__movies_to_proto( cursor, schema, serializer)
+        self.__series_to_proto( cursor, schema, serializer)
+        self.__episodes_to_proto( cursor, schema, serializer)
 
-    def __movies_to_proto(self, cursor, item_list):
+    def __movies_to_proto(self, cursor, schema, serializer):
         """Make proto objects for movies and add them to ItemList.
 
         Args:
             cursor (mysql.cursor): Mysql cursor which is used to query the database.
-            item_list (schema.ItemList): Schema ItemList type to which movies need to be added.
-        
-        Returns:
-            item_list (schema.ItemList): Updated ItemList which includes movies.
+            schema (module): The compiled protobuf schema.
+            serializer (schemaorgutils.JSONLDFeedSerializer): To serialize feed.
+
         """
         
         cursor.execute("SELECT url, name , image , content_rating , description , date_published , keywords , duration_minutes , rating_count , rating , best_rating , worst_rating from movie;")
@@ -59,12 +55,7 @@ class IMDBExample:
         query_list = list(cursor)
 
         for m in query_list:
-            list_item = item_list.item_list_element.add().list_item
-            list_item.position.add().integer = int(self._position)
-            
-            self._position = self._position + 1
-
-            movie = list_item.item.add().movie
+            movie = schema.Movie()
 
             if m[0]:
                 movie.url.add().url = m[0]
@@ -114,19 +105,17 @@ class IMDBExample:
             movie = self.__add_creators(m[0], movie, cursor)
             movie = self.__add_reviews(m[0], movie, cursor)
             movie = self.__add_trailers(m[0], movie, cursor)
+            serializer.add_item(movie, schema)
 
 
-        return item_list
-
-    def __series_to_proto(self, cursor, item_list):
+    def __series_to_proto(self, cursor, schema, serializer):
         """Make proto objects for series and add them to ItemList.
 
         Args:
             cursor (mysql.cursor): Mysql cursor which is used to query the database.
-            item_list (schema.ItemList): Schema ItemList type to which series need to be added.
-        
-        Returns:
-            item_list (schema.ItemList): Updated ItemList which includes series.
+            schema (module): The compiled protobuf schema.
+            serializer (schemaorgutils.JSONLDFeedSerializer): To serialize feed.
+
         """
         
         cursor.execute("SELECT url, name , image , content_rating , description , date_published , keywords , rating_count , rating , best_rating , worst_rating from series;")
@@ -134,12 +123,7 @@ class IMDBExample:
         query_list = list(cursor)
 
         for m in query_list:
-            list_item = item_list.item_list_element.add().list_item
-            list_item.position.add().integer = int(self._position)
-            
-            self._position = self._position + 1
-
-            tv_series = list_item.item.add().tv_series
+            tv_series = schema.TVSeries()
 
             if m[0]:
                 tv_series.id = m[0]
@@ -185,18 +169,17 @@ class IMDBExample:
             tv_series = self.__add_creators(m[0], tv_series, cursor)
             tv_series = self.__add_reviews(m[0], tv_series, cursor)
             tv_series = self.__add_trailers(m[0], tv_series, cursor)
+            serializer.add_item(tv_series, schema)
 
-        return item_list
 
-    def __episodes_to_proto(self, cursor, item_list):
+    def __episodes_to_proto(self, cursor, schema, serializer):
         """Make proto objects for episodes and add them to ItemList.
 
         Args:
             cursor (mysql.cursor): Mysql cursor which is used to query the database.
-            item_list (schema.ItemList): Schema ItemList type to which episodes need to be added.
-        
-        Returns:
-            item_list (schema.ItemList): Updated ItemList which includes episodes.
+            schema (module): The compiled protobuf schema.
+            serializer (schemaorgutils.JSONLDFeedSerializer): To serialize feed.
+            
         """
 
         cursor.execute("SELECT url, name , image , content_rating , description , date_published , keywords , duration_minutes , rating_count , rating , best_rating , worst_rating from episode;")
@@ -204,12 +187,7 @@ class IMDBExample:
         query_list = list(cursor)
 
         for m in query_list:
-            list_item = item_list.item_list_element.add().list_item
-            list_item.position.add().integer = int(self._position)
-            
-            self._position = self._position + 1
-
-            tv_episode = list_item.item.add().tv_episode
+            tv_episode = schema.TVEpisode()
 
             if m[0]:
                 tv_episode.url.add().url = m[0]
@@ -259,10 +237,9 @@ class IMDBExample:
             tv_episode = self.__add_creators(m[0], tv_episode, cursor)
             tv_episode = self.__add_reviews(m[0], tv_episode, cursor)
             tv_episode = self.__add_trailers(m[0], tv_episode, cursor)
+            serializer.add_item(tv_episode, schema)
 
 
-        return item_list
-    
     def __add_date(self, date_proto, date_obj):
         """Set fields of date proto object from python date object.
 

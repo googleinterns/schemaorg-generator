@@ -36,11 +36,11 @@ def main():
     sdr.seed_db(cursor, dump["movies"], dump["tvseries"], dump["tvepisodes"])
     mydb.commit()
 
+    szr = serializer.JSONLDFeedSerializer("./generated-feed.json", feed_type="ItemList")
     i = feed_generator.IMDBExample()
-    item_list = i.get_feed(cursor, schema_pb2)
+    i.generate_feed(cursor, schema_pb2, szr)
+    szr.close()
 
-    szr = serializer.JSONLDSerializer()
-    szr.write(item_list, "./generated-feed.json", schema_pb2)
 
 
 if __name__ == '__main__':
