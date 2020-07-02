@@ -3,114 +3,99 @@
 	"@type":"DataFeed",
 	"dataFeedElement":[
 		{
-		    "@type": "DataFeedItem",
-		    "item": {
-		        "@id": "Id of Movie 1",
-		        "@type": "Movie",
-		        "actor": [
-		            {
-		                "@type": "Person",
-		                "name": "Actor 1"
-		            },
-		            {
-		                "@type": "Person",
-		                "name": "Actor 2"
-		            },
-		            {
-		                "@type": "Person",
-		                "name": "Actor 3"
-		            }
-		        ],
-		        "name": "Movie 1"
-		    }
+		    "@id": "Id of Movie 1",
+		    "@type": "Movie",
+		    "actor": [
+		        {
+		            "@type": "Person",
+		            "name": "Actor 1"
+		        },
+		        {
+		            "@type": "Person",
+		            "name": "Actor 2"
+		        },
+		        {
+		            "@type": "Person",
+		            "name": "Actor 3"
+		        }
+		    ],
+		    "name": "Movie 1"
 		},
 		{
-		    "@type": "DataFeedItem",
-		    "item": {
-		        "@id": "Id of Movie 2",
-		        "@type": "Movie",
-		        "actor": [
-		            {
-		                "@type": "Person",
-		                "name": "Actor 1"
-		            },
-		            {
-		                "@type": "Person",
-		                "name": "Actor 2"
-		            },
-		            {
-		                "@type": "Person",
-		                "name": "Actor 3"
-		            }
-		        ],
-		        "name": "Movie 2"
-		    }
+		    "@id": "Id of Movie 2",
+		    "@type": "Movie",
+		    "actor": [
+		        {
+		            "@type": "Person",
+		            "name": "Actor 1"
+		        },
+		        {
+		            "@type": "Person",
+		            "name": "Actor 2"
+		        },
+		        {
+		            "@type": "Person",
+		            "name": "Actor 3"
+		        }
+		    ],
+		    "name": "Movie 2"
 		},
 		{
-		    "@type": "DataFeedItem",
-		    "item": {
-		        "@id": "Id of Movie 3",
-		        "@type": "Movie",
-		        "actor": [
-		            {
-		                "@type": "Person",
-		                "name": "Actor 1"
-		            },
-		            {
-		                "@type": "Person",
-		                "name": "Actor 2"
-		            },
-		            {
-		                "@type": "Person",
-		                "name": "Actor 3"
-		            }
-		        ],
-		        "name": "Movie 3"
-		    }
+		    "@id": "Id of Movie 3",
+		    "@type": "Movie",
+		    "actor": [
+		        {
+		            "@type": "Person",
+		            "name": "Actor 1"
+		        },
+		        {
+		            "@type": "Person",
+		            "name": "Actor 2"
+		        },
+		        {
+		            "@type": "Person",
+		            "name": "Actor 3"
+		        }
+		    ],
+		    "name": "Movie 3"
 		},
 		{
-		    "@type": "DataFeedItem",
-		    "item": {
-		        "@id": "Id of Movie 4",
-		        "@type": "Movie",
-		        "actor": [
-		            {
-		                "@type": "Person",
-		                "name": "Actor 1"
-		            },
-		            {
-		                "@type": "Person",
-		                "name": "Actor 2"
-		            },
-		            {
-		                "@type": "Person",
-		                "name": "Actor 3"
-		            }
-		        ],
-		        "name": "Movie 4"
-		    }
+		    "@id": "Id of Movie 4",
+		    "@type": "Movie",
+		    "actor": [
+		        {
+		            "@type": "Person",
+		            "name": "Actor 1"
+		        },
+		        {
+		            "@type": "Person",
+		            "name": "Actor 2"
+		        },
+		        {
+		            "@type": "Person",
+		            "name": "Actor 3"
+		        }
+		    ],
+		    "name": "Movie 4"
 		},
 		{
-		    "@type": "DataFeedItem",
-		    "item": {
-		        "@id": "Id of Movie 5",
-		        "@type": "Movie",
-		        "actor": [
-		            {
-		                "@type": "Person",
-		                "name": "Actor 1"
-		            },
-		            {
-		                "@type": "Person",
-		                "name": "Actor 2"
-		            },
-		            {
-		                "@type": "Person",
-		                "name": "Actor 3"
-		            }
-		        ],
-		        "name": "Movie 5"
-		    }
+		    "@id": "Id of Movie 5",
+		    "@type": "Movie",
+		    "actor": [
+		        {
+		            "@type": "Person",
+		            "name": "Actor 1"
+		        },
+		        {
+		            "@type": "Person",
+		            "name": "Actor 2"
+		        },
+		        {
+		            "@type": "Person",
+		            "name": "Actor 3"
+		        }
+		    ],
+		    "name": "Movie 5"
 		}
 	]
 }

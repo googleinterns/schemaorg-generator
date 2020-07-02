@@ -319,27 +319,27 @@ class JSONLDFeedSerializer(JSONLDSerializer):
         
         assert self._outfile.closed == False, "The serializer had been already closed."
 
-        if self._feed_type == "ItemList":
-            element = schema.ListItem()
-        elif self._feed_type == "DataFeed":
-            element = schema.DataFeedItem()
-
-        element = self.proto_to_dict(element, schema)
         obj = self.proto_to_dict(obj, schema)
-        element["item"] = obj
 
-        if self._feed_type == "ItemList":
-            element["position"] = self._count + 1
-
-        if (not self._validator) or (self._validator.add_entity(element["item"])):
-            element = json.dumps(element, indent=4, sort_keys=True)
-            if self._count:
-                element = ",\n" + element
-            else:
-                element = "\n" + element
+        if (not self._validator) or (self._validator.add_entity(obj)):
+            out_obj = {}
             
-            element = element.replace("\n", "\n\t\t")
-            self._outfile.write(element)
+            if self._feed_type == "ItemList":
+                out_obj["@type"] = "ListItem"
+                out_obj["item"] = obj
+                out_obj["position"] = self._count + 1
+            
+            elif self._feed_type == "DataFeed":
+                out_obj = obj
+            
+            out_obj = json.dumps(out_obj, indent=4, sort_keys=True)
+            if self._count:
+                out_obj = ",\n" + out_obj
+            else:
+                out_obj = "\n" + out_obj
+            
+            out_obj = out_obj.replace("\n", "\n\t\t")
+            self._outfile.write(out_obj)
             self._count = self._count + 1
         
     

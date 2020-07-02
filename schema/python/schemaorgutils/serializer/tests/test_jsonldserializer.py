@@ -254,7 +254,7 @@ def test_enumeration():
     c = schema.RsvpResponseType()
     c.id = schema.RsvpResponseTypeClass.Id.RSVP_RESPONSE_YES
 
-    expected = "https://schema.org/RsvpResponseYes"
+    expected = "http://schema.org/RsvpResponseYes"
     output = j.proto_to_dict(c, schema)
     assert output == expected, "Enumeration(Id) serialization failed."
 
