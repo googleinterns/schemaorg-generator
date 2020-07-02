@@ -15,6 +15,7 @@ const fs = require('fs');
 const util = require('util');
 const moment = require('moment');
 const assert = require('assert');
+const sortObject = require("sort-object-keys");
 
 /**
  * JSONLDSerializer is used to serialize schema proto object to JSONLD feed.
@@ -58,6 +59,7 @@ class JSONLDSerializer {
                         outObj[schemaDescriptor.messages[objectType].fields[i]].push(this.protoToDict(obj.wrappers_[key][j], schemaDescriptor.messages[objectType].fields[i], schemaDescriptor));
                     }
 
+                    outObj[schemaDescriptor.messages[objectType].fields[i]] = outObj[schemaDescriptor.messages[objectType].fields[i]].sort();
                     if(outObj[schemaDescriptor.messages[objectType].fields[i]].length==1){
                         outObj[schemaDescriptor.messages[objectType].fields[i]]=outObj[schemaDescriptor.messages[objectType].fields[i]][0];
                     }
@@ -68,7 +70,7 @@ class JSONLDSerializer {
                     }
                 }
             }
-            return outObj
+            return sortObject(outObj);
         }
 
     }
@@ -158,7 +160,7 @@ class JSONLDSerializer {
                 }
             }
             else{
-                return dtString.substr(11, 19);
+                return dtString.substr(11, 8);
             }
         }
     }
@@ -198,8 +200,6 @@ class JSONLDSerializer {
             else{
                 return dtString.substr(0, 19);
             }
-
-            return dt.toISOString().substr(0, 19);
         }
     }
 
@@ -257,7 +257,7 @@ class JSONLDSerializer {
         else if(messageType=="DatatypeTime"){
             return this.timeToString(obj);
         }
-        else if(messageType=="DatatypeQuantitaive"){
+        else if(messageType=="DatatypeQuantitative"){
             return this.quantitativeToString(obj);
         }
         else if(messageType=="DatatypeDuration"){
@@ -332,55 +332,4 @@ class JSONLDItemListSerializer extends JSONLDSerializer {
 
 module.exports.JSONLDSerializer = JSONLDSerializer;
 module.exports.JSONLDItemListSerializer = JSONLDItemListSerializer;
-
-
-// // Test code will be removed later
-// let j = new JSONLDItemListSerializer("./out.json");
-
-// const schema = require("./schema_pb.js");
-// const schemaDescriptor = require("./schema_descriptor.json");
-// for(let i=0; i<4; i++){
-//     let listItem = new schema.ListItem();
-//     let item = new schema.ItemProperty();
-//     let position = new schema.PositionProperty();
-//     position.setInteger(i+1);
-//     listItem.addPosition(position);
-
-//     let movie = new schema.Movie();
-//     let name = new schema.NameProperty();
-//     name.setText("movie name" + String(i+1));
-//     movie.addName(name);
-
-//     let actor = new schema.ActorProperty();
-//     let person = new schema.Person();
-//     name = new schema.NameProperty();
-//     name.setText("actor name" + String(i+1) +"-1");
-//     person.addName(name);
-//     actor.setPerson(person);
-//     movie.addActor(actor);
-
-//     actor = new schema.ActorProperty();
-//     person = new schema.Person();
-//     name = new schema.NameProperty();
-//     name.setText("actor name" + String(i+1) +"-2");
-//     person.addName(name);
-//     actor.setPerson(person);
-//     movie.addActor(actor);
-
-//     actor = new schema.ActorProperty();
-//     person = new schema.Person();
-//     name = new schema.NameProperty();
-//     name.setText("actor name" + String(i+1) +"-3");
-//     person.addName(name);
-//     actor.setPerson(person);
-//     movie.addActor(actor);
-
-//     item.setMovie(movie);
-//     listItem.addItem(item);
-
-//     j.addItem(listItem, schema, schemaDescriptor);
-
-// }
-
-// j.close();
 
