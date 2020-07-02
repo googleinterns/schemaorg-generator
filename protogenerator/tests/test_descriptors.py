@@ -204,10 +204,10 @@ def test_enum_descriptor():
 
         enum Id {
             UNKNOWN = 0 [(schemaorg_value)="Unknown"];
-            AMET = 1 [(schemaorg_value) = "https://schema.org/AMET"];
-            DOLOR = 2 [(schemaorg_value) = "https://schema.org/Dolor"];
-            IPSUM_VALUE = 3 [(schemaorg_value) = "https://schema.org/IpsumValue"];
-            LOREM_VALUE = 4 [(schemaorg_value) = "https://schema.org/LoremValue"];
+            AMET = 1 [(schemaorg_value) = "http://schema.org/AMET"];
+            DOLOR = 2 [(schemaorg_value) = "http://schema.org/Dolor"];
+            IPSUM_VALUE = 3 [(schemaorg_value) = "http://schema.org/IpsumValue"];
+            LOREM_VALUE = 4 [(schemaorg_value) = "http://schema.org/LoremValue"];
         }
 
         // Properties from Foo.
