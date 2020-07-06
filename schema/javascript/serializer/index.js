@@ -286,13 +286,17 @@ class JSONLDSerializer {
 
 class JSONLDFeedSerializer extends JSONLDSerializer {
 
-    constructor(outFile, feedType = "ItemList"){
+    constructor(outFile, feedType = "ItemList", validator = null){
         assert(feedType == "ItemList" || feedType == "DataFeed", "feed_type must be 'ItemList' or 'DataFeed'.");
         super();
         this.outFile = fs.openSync(outFile, 'w');
         this.count = 0;
         this.isClosed = false;
         this.feedType = feedType;
+
+        if(validator){
+            this.validator = validator;
+        }
 
         if(this.feedType == "ItemList"){
             fs.writeSync(this.outFile, "{\n");
@@ -310,15 +314,22 @@ class JSONLDFeedSerializer extends JSONLDSerializer {
 
     }
 
-    addItem(entity, entityType, schemaDescriptor) {
+    async addItem(entity, entityType, schemaDescriptor) {
 
         assert(this.isClosed == false, "The serializer has already been closed.");
 
+        let entitySerialized = super.protoToDict(entity, entityType, schemaDescriptor);
+        
+        if(this.validator){
+            let conforms = await this.validator.addEntity(entitySerialized);
+
+            if(!conforms) return;
+        }
+        
         if(this.count){
             fs.writeSync(this.outFile, ",");
         }
 
-        let entitySerialized = super.protoToDict(entity, entityType, schemaDescriptor);
         let outObj;
 
         if(this.feedType == "ItemList"){
@@ -347,6 +358,10 @@ class JSONLDFeedSerializer extends JSONLDSerializer {
         fs.writeSync(this.outFile, "\n\t]\n");
         fs.writeSync(this.outFile, "}\n");
         fs.closeSync(this.outFile);
+
+        if(this.validator){
+            this.validator.close();
+        }
         this.isClosed = true;
     }
     
