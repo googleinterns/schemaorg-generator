@@ -18,7 +18,7 @@ const assert = require('assert');
 const sortObject = require("sort-object-keys");
 
 /**
- * JSONLDSerializer is used to serialize schema proto object to JSONLD feed.
+ * JSONLDSerializer is used to serialize schema proto object to JSONLD.
  * @class
  */
 class JSONLDSerializer {
@@ -284,8 +284,19 @@ class JSONLDSerializer {
     
 }
 
+/**
+ * JSONLDFeedSerializer is used to serialize schema proto object to JSONLD item by item as ItemList or DataFeed.
+ * @class
+ */
 class JSONLDFeedSerializer extends JSONLDSerializer {
 
+    /**
+     * Constructor for JSONLDFeedSerializer.
+     * @constructor
+     * @param  {String} outFile The outfile where the feed has to be written to.
+     * @param  {String} feedType The type of feed ItemList/DataFeed.
+     * @param  {SchemaValidator} [validator = null] Validator if feed has to be validated.
+     */
     constructor(outFile, feedType = "ItemList", validator = null){
         assert(feedType == "ItemList" || feedType == "DataFeed", "feed_type must be 'ItemList' or 'DataFeed'.");
         super();
@@ -314,6 +325,12 @@ class JSONLDFeedSerializer extends JSONLDSerializer {
 
     }
 
+    /**
+     * Serialize an item and validate it if validator exists. Write the item to the file.
+     * @param  {Object} obj The schema object.
+     * @param  {String} objectType The schema object type.
+     * @param  {Object} schemaDescriptor The JSON schemaDescriptor.
+     */
     async addItem(entity, entityType, schemaDescriptor) {
 
         assert(this.isClosed == false, "The serializer has already been closed.");
@@ -351,6 +368,9 @@ class JSONLDFeedSerializer extends JSONLDSerializer {
         
     }
 
+    /**
+     *Close the serializer and validator (if exists).
+     */
     close() {
 
         assert(this.isClosed == false, "The serializer has already been closed.");
