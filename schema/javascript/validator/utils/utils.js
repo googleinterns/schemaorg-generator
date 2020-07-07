@@ -74,7 +74,7 @@ class ResultRow{
      * @param  {String} id Identfier of the outermost entity that caused the validation error.
      * @param  {String} message The message indicating the cause of error.
      * @param  {String} propertyPath The path to the source of error.
-     * @param  {String} value The value of attribute that caused error.
+     * @param  {any} value The value of attribute that caused error.
      * @param  {String} severity The severity of error.
      */
     constructor(id, message, propertyPath, value, severity){

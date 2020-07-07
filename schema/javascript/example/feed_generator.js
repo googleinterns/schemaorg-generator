@@ -13,8 +13,21 @@
 // limitations under the License.
 const pEvent = require('p-event');
 const moment = require('moment');
+
+/**
+ * The IMDBExample reads the database to generate proto ItemList object from movies,
+ * series and episodes used for generating JSON-LD feed.
+ * @class
+ */
 class IMDBExample{
 
+    /**
+     * Make proto objects for movies and call serializer.addItem.
+     * @param  {Object} con MySQL connection object.
+     * @param  {Module} schema  Compiled protobuf schema.
+     * @param  {Object} serializer  JSONLDFeedSerializer.
+     * @param  {Object} schemaDescriptor  JSON schema descriptor.
+     */
     async moviesToProto(con, schema, serializer, schemaDescriptor){
 
         let q = `select 
@@ -185,6 +198,13 @@ class IMDBExample{
         }
     }
 
+    /**
+     * Make proto objects for tvseries and call serializer.addItem.
+     * @param  {Object} con MySQL connection object.
+     * @param  {Module} schema  Compiled protobuf schema.
+     * @param  {Object} serializer  JSONLDFeedSerializer.
+     * @param  {Object} schemaDescriptor  JSON schema descriptor.
+     */
     async seriesToProto(con, schema, serializer, schemaDescriptor){
 
         let q = `select 
@@ -348,6 +368,13 @@ class IMDBExample{
         }
     }
 
+    /**
+     * Make proto objects for tvepisodes and call serializer.addItem.
+     * @param  {Object} con MySQL connection object.
+     * @param  {Module} schema  Compiled protobuf schema.
+     * @param  {Object} serializer  JSONLDFeedSerializer.
+     * @param  {Object} schemaDescriptor  JSON schema descriptor.
+     */
     async episodesToProto(con, schema, serializer, schemaDescriptor){
 
         let q = `select 
@@ -518,6 +545,13 @@ class IMDBExample{
         }
     }
 
+    /**
+     * Make proto objects for actors and add it to the entity.
+     * @param  {Array} actors List of actors to be added to the entity.
+     * @param  {Module} schema  Compiled protobuf schema.
+     * @param  {Object} entity  Proto object to which actors need to be added.
+     * @returns  {Object} Proto object with actors added.
+     */
     addActors(actors, schema, entity){        
         for(let a of actors){
             let actor = new schema.ActorProperty();
@@ -542,6 +576,13 @@ class IMDBExample{
         return entity;
     }
 
+    /**
+     * Make proto objects for directors and add it to the entity.
+     * @param  {Array} directors List of directors to be added to the entity.
+     * @param  {Module} schema  Compiled protobuf schema.
+     * @param  {Object} entity  Proto object to which directors need to be added.
+     * @returns  {Object} Proto object with directors added.
+     */
     addDirectors(directors, schema, entity){
         for(let a of directors){
             let director = new schema.DirectorProperty();
@@ -566,6 +607,13 @@ class IMDBExample{
         return entity;
     }
 
+    /**
+     * Make proto objects for creators and add it to the entity.
+     * @param  {Array} creators List of creators to be added to the entity.
+     * @param  {Module} schema  Compiled protobuf schema.
+     * @param  {Object} entity  Proto object to which creators need to be added.
+     * @returns  {Object} Proto object with creators added.
+     */
     addCreators(creators, schema, entity){        
         for(let a of creators){
             let creator = new schema.CreatorProperty();
@@ -612,6 +660,13 @@ class IMDBExample{
         return entity;
     }
 
+    /**
+     * Make proto objects for genres and add it to the entity.
+     * @param  {Array} genres List of genres to be added to the entity.
+     * @param  {Module} schema  Compiled protobuf schema.
+     * @param  {Object} entity  Proto object to which genres need to be added.
+     * @returns  {Object} Proto object with genres added.
+     */
     addGenres(genres, schema, entity){
         for(let a of genres){
             let genre = new schema.GenreProperty();
@@ -626,6 +681,14 @@ class IMDBExample{
         return entity;
     }
 
+    /**
+     * Make proto objects for reviews and add it to the entity.
+     * @param  {Array} reviews List of reviews to be added to the entity.
+     * @param  {Module} schema  Compiled protobuf schema.
+     * @param  {Object} entity  Proto object to which reviews need to be added.
+     * @param  {String} url  URL of the entity to which review belongs to.
+     * @returns  {Object} Proto object with reviews added.
+     */
     addReviews(reviews, schema, entity, url){
         for(let a of reviews){
             let reviewProp = new schema.ReviewProperty();
@@ -705,6 +768,13 @@ class IMDBExample{
         return entity;
     }
 
+    /**
+     * Make proto objects for trailers and add it to the entity.
+     * @param  {Array} trailers List of trailers to be added to the entity.
+     * @param  {Module} schema  Compiled protobuf schema.
+     * @param  {Object} entity  Proto object to which trailers need to be added.
+     * @returns  {Object} Proto object with trailers added.
+     */
     addTrailers(trailers, schema, entity){
         for(let a of trailers){
             let trailer = new schema.TrailerProperty();
@@ -750,7 +820,12 @@ class IMDBExample{
         return entity;
     }
 
-
+    /**
+     * Make proto objects for date, set fields and return it.
+     * @param  {Object|String} dateObj Date object or date string.
+     * @param  {Module} schema  Compiled protobuf schema.
+     * @returns  {Object} Proto date object.
+     */
     addDate(dateObj, schema){
         //Throws up lot of inconsisntent values. Needs to be taken care.
         if(typeof dateObj == "string"){
@@ -766,12 +841,25 @@ class IMDBExample{
         return dt;
     }
 
+    /**
+     * Make proto objects for duration, set fields and return it.
+     * @param  {Number} durationMin Number of minutes.
+     * @param  {Module} schema  Compiled protobuf schema.
+     * @returns  {Object} Proto duration object.
+     */
     addDuration(durationMin, schema) {
         let duration = new schema.Duration();
         duration.setSeconds(durationMin * 60);
         return duration;
     }
 
+    /**
+     * Call moviesToProto, seriesToProto and episodesToProto.
+     * @param  {Object} con MySQL connection object.
+     * @param  {Module} schema  Compiled protobuf schema.
+     * @param  {Object} serializer  JSONLDFeedSerializer.
+     * @param  {Object} schemaDescriptor  JSON schema descriptor.
+     */
     async generateFeed(con, schema, serializer, schemaDescriptor){
 
         await this.moviesToProto(con, schema, serializer, schemaDescriptor);

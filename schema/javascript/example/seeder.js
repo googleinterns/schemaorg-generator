@@ -13,7 +13,6 @@
 // limitations under the License.
 const mysql = require('mysql');
 const util = require('util');
-const dump = require("./dump.json");
 const parseIsoDuration = require('parse-iso-duration');
 const moment = require('moment');
 
@@ -26,7 +25,6 @@ class IMDBSeeder {
     /**
      * Creates database that needs to be seeded.
      * @param  {Object} db_config The database configuration.
-     * @return {Promise}      Promise that indicates complete execution of function.
      */
     async init(db_config){
         let con = mysql.createConnection({
@@ -46,7 +44,6 @@ class IMDBSeeder {
     /**
      * Creates tables that needs to be seeded.
      * @param  {Function} query The promisified version of mysql query function.
-     * @return {Promise}      Promise that indicates complete execution of function.
      */
     async createTables(query) {
 
@@ -77,7 +74,6 @@ class IMDBSeeder {
      * @param  {Array} movieList The list of movies to be seeded.
      * @param  {Array} seriesList The list of series to be seeded.
      * @param  {Array} episodeList The list of episodes to be seeded.
-     * @return {Promise}      Promise that indicates complete execution of function.
      */
     async seedDB(query, movieList, seriesList, episodeList) {
         await this.seedMovies(query, movieList);
@@ -89,7 +85,6 @@ class IMDBSeeder {
      * Seeds movies into the database.
      * @param  {Function} query The promisified version of mysql query function.
      * @param  {Array} movieList The list of movies to be seeded.
-     * @return {Promise}      Promise that indicates complete execution of function.
      */
     async seedMovies(query, movieList){
         
@@ -183,7 +178,6 @@ class IMDBSeeder {
      * Seeds series into the database.
      * @param  {Function} query The promisified version of mysql query function.
      * @param  {Array} seriesList The list of series to be seeded.
-     * @return {Promise}      Promise that indicates complete execution of function.
      */
     async seedSeries(query, seriesList){
         
@@ -276,7 +270,6 @@ class IMDBSeeder {
      * Seeds episodes into the database.
      * @param  {Function} query The promisified version of mysql query function.
      * @param  {Array} episodeList The list of episodes to be seeded.
-     * @return {Promise}      Promise that indicates complete execution of function.
      */
     async seedEpisodes(query, episodeList){
         
@@ -371,7 +364,6 @@ class IMDBSeeder {
      * @param  {Function} query The promisified version of mysql query function.
      * @param  {String} genre The name of genre that needs to be inserted.
      * @param  {String} url The url of entity for which genre is being added.
-     * @return {Promise}      Promise that indicates complete execution of function.
      */
     async seedGenre(query, genre, url){
         let q = `INSERT INTO genre values (
@@ -387,7 +379,6 @@ class IMDBSeeder {
      * @param  {Function} query The promisified version of mysql query function.
      * @param  {Object} actor The actor that needs to be inserted.
      * @param  {String} url The url of entity for which actor is being added.
-     * @return {Promise}      Promise that indicates complete execution of function.
      */
     async seedActor(query, actor, url){
 
@@ -405,7 +396,6 @@ class IMDBSeeder {
      * @param  {Function} query The promisified version of mysql query function.
      * @param  {Object} director The director that needs to be inserted.
      * @param  {String} url The url of entity for which director is being added.
-     * @return {Promise}      Promise that indicates complete execution of function.
      */
     async seedDirector(query, director, url){
         let q = `INSERT INTO director values (
@@ -422,7 +412,6 @@ class IMDBSeeder {
      * @param  {Function} query The promisified version of mysql query function.
      * @param  {Object} creator The creator that needs to be inserted.
      * @param  {String} url The url of entity for which creator is being added.
-     * @return {Promise}      Promise that indicates complete execution of function.
      */
     async seedCreator(query, director, url){
         let q = `INSERT INTO creator values (
@@ -440,7 +429,6 @@ class IMDBSeeder {
      * @param  {Function} query The promisified version of mysql query function.
      * @param  {Object} review The review that needs to be inserted.
      * @param  {String} url The url of entity for which review is being added.
-     * @return {Promise}      Promise that indicates complete execution of function.
      */
     async seedReview(query, review, url){
         let q;
@@ -477,7 +465,6 @@ class IMDBSeeder {
      * @param  {Function} query The promisified version of mysql query function.
      * @param  {Object} trailer The trailer that needs to be inserted.
      * @param  {String} url The url of entity for which trailer is being added.
-     * @return {Promise}      Promise that indicates complete execution of function.
      */
     async seedTrailer(query, trailer, url) {
         let q = `INSERT INTO trailer values( 
