@@ -23,7 +23,6 @@ const IMDBSeeder = require('./seeder').IMDBSeeder;
 
 /**
  * Creates new IMDBSeeder and seeds db and creates new IMDBExample and generates feed.
- * @return {Promise}      Promise that indicates complete execution of function.
  */
 async function main () {
     let seeder = new IMDBSeeder();
@@ -36,7 +35,7 @@ async function main () {
         database: config.DBConfig.dbname
     });
     let query = util.promisify(con.query).bind(con);
-
+    
     console.log("Started seeding database.");
     await seeder.createTables(query);
     console.log("Tables created successfully.");
@@ -46,13 +45,11 @@ async function main () {
     let example = new IMDBExample();
     let serializer = new JSONLDFeedSerializer("./generated-feed.json", feedType="ItemList");
     console.log("Feed generation started.");
-    await example.generateFeed(query, schema, serializer, schemaDescriptor);
+    await example.generateFeed(con, schema, serializer, schemaDescriptor);
     serializer.close();
     console.log("Feed generation completed.");
-
+    con.end();
+    console.log("Successfully ran example.");
 }
 
-main().then(function(){
-    console.log("Successfully ran example.");
-    process.exit(0);
-})
+main();

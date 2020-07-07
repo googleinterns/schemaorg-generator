@@ -331,17 +331,17 @@ class JSONLDFeedSerializer extends JSONLDSerializer {
      * @param  {String} objectType The schema object type.
      * @param  {Object} schemaDescriptor The JSON schemaDescriptor.
      */
-    async addItem(entity, entityType, schemaDescriptor) {
+    addItem(entity, entityType, schemaDescriptor) {
 
         assert(this.isClosed == false, "The serializer has already been closed.");
 
         let entitySerialized = super.protoToDict(entity, entityType, schemaDescriptor);
         
-        if(this.validator){
-            let conforms = await this.validator.addEntity(entitySerialized);
+        // if(this.validator){
+        //     let conforms = await this.validator.addEntity(entitySerialized);
 
-            if(!conforms) return;
-        }
+        //     if(!conforms) return;
+        // }
         
         if(this.count){
             fs.writeSync(this.outFile, ",");

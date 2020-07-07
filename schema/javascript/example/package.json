@@ -10,8 +10,9 @@
   "license": "ISC",
   "dependencies": {
     "google-protobuf": "^3.12.2",
-    "moment": "^2.26.0",
+    "moment": "^2.27.0",
     "mysql": "^2.18.1",
+    "p-event": "^4.2.0",
     "parse-iso-duration": "^1.1.0"
   }
 }

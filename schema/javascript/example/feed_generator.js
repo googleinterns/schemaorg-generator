@@ -11,29 +11,68 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+const pEvent = require('p-event');
+const moment = require('moment');
 class IMDBExample{
 
-    async moviesToProto(query, schema, serializer, schemaDescriptor){
+    async moviesToProto(con, schema, serializer, schemaDescriptor){
 
-        let q = `SELECT 
-                    url, 
-                    name , 
-                    image , 
-                    content_rating , 
-                    description , 
-                    date_published , 
-                    keywords , 
-                    duration_minutes , 
-                    rating_count , 
-                    rating , 
-                    best_rating , 
-                    worst_rating 
-                    from movie;`;
+        let q = `select 
+                    m.url as url, 
+                    m.name as name,
+                    m.image as image,
+                    m.content_rating as content_rating, 
+                    m.description as description, 
+                    m.date_published as date_published, 
+                    m.keywords as keywords, 
+                    m.duration_minutes as duration_minutes, 
+                    m.rating_count as rating_count, 
+                    m.rating as rating, 
+                    m.best_rating as best_rating, 
+                    m.worst_rating as worst_rating, 
+                    (select JSON_ARRAYAGG(JSON_OBJECT(
+                        'name', name
+                        )) from genre where genre.entity_url=m.url) as genres,
+                    (select JSON_ARRAYAGG(JSON_OBJECT(
+                        'name', name, 
+                        'url', url
+                        )) from actor where actor.entity_url=m.url) as actors,
+                    (select JSON_ARRAYAGG(JSON_OBJECT(
+                        'name', name, 
+                        'url', url
+                        )) from director where director.entity_url=m.url) as directors,
+                    (select JSON_ARRAYAGG(JSON_OBJECT(
+                        'name', name, 
+                        'url', url,
+                        'type', type
+                        )) from creator where creator.entity_url=m.url) as creators,
+                    (select JSON_ARRAYAGG(JSON_OBJECT(
+                        'author', author, 
+                        'date_created', date_created,
+                        'language', language,
+                        'name', name,
+                        'review_body', review_body,
+                        'rating', rating,
+                        'best_rating', best_rating,
+                        'worst_rating', worst_rating
+                        )) from review where review.entity_url=m.url) as reviews,
+                    (select JSON_ARRAYAGG(JSON_OBJECT(
+                        'name', name,
+                        'embed_url', embed_url,
+                        'thumbnail_url', thumbnail_url,
+                        'description', description,
+                        'upload_date', upload_date
+                        )) from trailer where trailer.entity_url=m.url) as trailers
+                    from movie m;
+                    `;
 
         
-        let movies = await query(q);
+        let result = con.query(q).stream();
+        const movies = pEvent.iterator(result, 'data', {
+            resolutionEvents: ['end']
+        });
 
-        for(let m of movies){
+        for await (let m of movies){
             let movie = new schema.Movie();
 
             if(m["url"]){
@@ -116,82 +155,136 @@ class IMDBExample{
                 movie.addAggregateRating(aggregateRatingProp);
             }
 
+            if(m["actors"]){
+                movie = this.addActors(JSON.parse(m["actors"]), schema, movie);
+            }
+
+            if(m["directors"]){
+                movie = this.addDirectors(JSON.parse(m["directors"]), schema, movie);
+            }
             
-            movie = await this.addActors(query, schema, movie, m["url"]);
-            movie = await this.addDirectors(query, schema, movie, m["url"]);
-            movie = await this.addCreators(query, schema, movie, m["url"]);
-            movie = await this.addGenres(query, schema, movie, m["url"]);
-            movie = await this.addReviews(query, schema, movie, m["url"]);
-            movie = await this.addTrailers(query, schema, movie, m["url"]);
+            if(m["creators"]){
+                movie = this.addCreators(JSON.parse(m["creators"]), schema, movie);
+            }
+            
+            if(m["genres"]){
+                movie = this.addGenres(JSON.parse(m["genres"]), schema, movie);
+            }
+            
+            if(m["reviews"]){
+                movie = this.addReviews(JSON.parse(m["reviews"]), schema, movie, m["url"]);
+            }
+            
+            if(m["trailers"]){
+                movie = this.addTrailers(JSON.parse(m["trailers"]), schema, movie);
+            }
+            
 
             serializer.addItem(movie, "Movie", schemaDescriptor);
 
         }
     }
 
-    async seriesToProto(query, schema, serializer, schemaDescriptor){
+    async seriesToProto(con, schema, serializer, schemaDescriptor){
 
-        let q = `SELECT 
-                    url, 
-                    name , 
-                    image , 
-                    content_rating , 
-                    description , 
-                    date_published , 
-                    keywords , 
-                    rating_count , 
-                    rating , 
-                    best_rating , 
-                    worst_rating 
-                    from series;`;
+        let q = `select 
+                    m.url as url, 
+                    m.name as name,
+                    m.image as image,
+                    m.content_rating as content_rating, 
+                    m.description as description, 
+                    m.date_published as date_published, 
+                    m.keywords as keywords, 
+                    m.rating_count as rating_count, 
+                    m.rating as rating, 
+                    m.best_rating as best_rating, 
+                    m.worst_rating as worst_rating, 
+                    (select JSON_ARRAYAGG(JSON_OBJECT(
+                        'name', name
+                        )) from genre where genre.entity_url=m.url) as genres,
+                    (select JSON_ARRAYAGG(JSON_OBJECT(
+                        'name', name, 
+                        'url', url
+                        )) from actor where actor.entity_url=m.url) as actors,
+                    (select JSON_ARRAYAGG(JSON_OBJECT(
+                        'name', name, 
+                        'url', url
+                        )) from director where director.entity_url=m.url) as directors,
+                    (select JSON_ARRAYAGG(JSON_OBJECT(
+                        'name', name, 
+                        'url', url,
+                        'type', type
+                        )) from creator where creator.entity_url=m.url) as creators,
+                    (select JSON_ARRAYAGG(JSON_OBJECT(
+                        'author', author, 
+                        'date_created', date_created,
+                        'language', language,
+                        'name', name,
+                        'review_body', review_body,
+                        'rating', rating,
+                        'best_rating', best_rating,
+                        'worst_rating', worst_rating
+                        )) from review where review.entity_url=m.url) as reviews,
+                    (select JSON_ARRAYAGG(JSON_OBJECT(
+                        'name', name,
+                        'embed_url', embed_url,
+                        'thumbnail_url', thumbnail_url,
+                        'description', description,
+                        'upload_date', upload_date
+                        )) from trailer where trailer.entity_url=m.url) as trailers
+                    from series m;
+                    `;
 
         
-        let series = await query(q);
+        let result = con.query(q).stream();
+        const series = pEvent.iterator(result, 'data', {
+            resolutionEvents: ['end']
+        });
 
-        for(let m of series){
-            let series = new schema.TVSeries();
+        for await (let m of series){
+            let tvseries = new schema.TVSeries();
 
             if(m["url"]){
                 let url = new schema.UrlProperty();
                 url.setUrl(m["url"]);
-                series.addUrl(url);
-                series.setId(m["url"]);
+                tvseries.addUrl(url);
+                tvseries.setId(m["url"]);
             }
 
             if(m["name"]){
                 let name = new schema.NameProperty();
                 name.setText(m["name"]);
-                series.addName(name);
+                tvseries.addName(name);
             }
 
             if(m["image"]){
                 let image = new schema.ImageProperty();
                 image.setUrl(m["image"]);
-                series.addImage(image);
+                tvseries.addImage(image);
             }
 
             if(m["content_rating"]){
                 let contentRating = new schema.ContentRatingProperty();
                 contentRating.setText(m["name"]);
-                series.addContentRating(contentRating);
+                tvseries.addContentRating(contentRating);
             }
 
             if(m["description"]){
                 let description = new schema.DescriptionProperty();
                 description.setText(m["description"]);
-                series.addDescription(description);
+                tvseries.addDescription(description);
             }
 
             if(m["date_published"]){
                 let datePublished = new schema.DatePublishedProperty();
                 datePublished.setDate(this.addDate(m["date_published"], schema));
-                series.addDatePublished(datePublished);
+                tvseries.addDatePublished(datePublished);
             }
 
             if(m["keywords"]){
                 let keywords = new schema.KeywordsProperty();
                 keywords.setText(m["keywords"]);
-                series.addKeywords(keywords);
+                tvseries.addKeywords(keywords);
             }
 
             if(m["rating"]){
@@ -222,43 +315,97 @@ class IMDBExample{
                     aggregateRating.addWorstRating(worstRating);
                 }
                 aggregateRatingProp.setAggregateRating(aggregateRating);
-                series.addAggregateRating(aggregateRatingProp);
+                tvseries.addAggregateRating(aggregateRatingProp);
             }
 
-            
-            series = await this.addActors(query, schema, series, m["url"]);
-            series = await this.addDirectors(query, schema, series, m["url"]);
-            series = await this.addCreators(query, schema, series, m["url"]);
-            series = await this.addGenres(query, schema, series, m["url"]);
-            series = await this.addReviews(query, schema, series, m["url"]);
-            series = await this.addTrailers(query, schema, series, m["url"]);
+            if(m["actors"]){
+                tvseries = this.addActors(JSON.parse(m["actors"]), schema, tvseries);
+            }
 
-            serializer.addItem(series, "TVSeries", schemaDescriptor);
+            if(m["directors"]){
+                tvseries = this.addDirectors(JSON.parse(m["directors"]), schema, tvseries);
+            }
+            
+            if(m["creators"]){
+                tvseries = this.addCreators(JSON.parse(m["creators"]), schema, tvseries);
+            }
+            
+            if(m["genres"]){
+                tvseries = this.addGenres(JSON.parse(m["genres"]), schema, tvseries);
+            }
+            
+            if(m["reviews"]){
+                tvseries = this.addReviews(JSON.parse(m["reviews"]), schema, tvseries, m["url"]);
+            }
+            
+            if(m["trailers"]){
+                tvseries = this.addTrailers(JSON.parse(m["trailers"]), schema, tvseries);
+            }
+            
+
+            serializer.addItem(tvseries, "TVSeries", schemaDescriptor);
 
         }
     }
 
-    async episodesToProto(query, schema, serializer, schemaDescriptor){
+    async episodesToProto(con, schema, serializer, schemaDescriptor){
 
-        let q = `SELECT 
-                    url, 
-                    name , 
-                    image , 
-                    content_rating , 
-                    description , 
-                    date_published , 
-                    keywords , 
-                    duration_minutes , 
-                    rating_count , 
-                    rating , 
-                    best_rating , 
-                    worst_rating 
-                    from episode;`;
+        let q = `select 
+                    m.url as url, 
+                    m.name as name,
+                    m.image as image,
+                    m.content_rating as content_rating, 
+                    m.description as description, 
+                    m.date_published as date_published, 
+                    m.keywords as keywords, 
+                    m.duration_minutes as duration_minutes, 
+                    m.rating_count as rating_count, 
+                    m.rating as rating, 
+                    m.best_rating as best_rating, 
+                    m.worst_rating as worst_rating, 
+                    (select JSON_ARRAYAGG(JSON_OBJECT(
+                        'name', name
+                        )) from genre where genre.entity_url=m.url) as genres,
+                    (select JSON_ARRAYAGG(JSON_OBJECT(
+                        'name', name, 
+                        'url', url
+                        )) from actor where actor.entity_url=m.url) as actors,
+                    (select JSON_ARRAYAGG(JSON_OBJECT(
+                        'name', name, 
+                        'url', url
+                        )) from director where director.entity_url=m.url) as directors,
+                    (select JSON_ARRAYAGG(JSON_OBJECT(
+                        'name', name, 
+                        'url', url,
+                        'type', type
+                        )) from creator where creator.entity_url=m.url) as creators,
+                    (select JSON_ARRAYAGG(JSON_OBJECT(
+                        'author', author, 
+                        'date_created', date_created,
+                        'language', language,
+                        'name', name,
+                        'review_body', review_body,
+                        'rating', rating,
+                        'best_rating', best_rating,
+                        'worst_rating', worst_rating
+                        )) from review where review.entity_url=m.url) as reviews,
+                    (select JSON_ARRAYAGG(JSON_OBJECT(
+                        'name', name,
+                        'embed_url', embed_url,
+                        'thumbnail_url', thumbnail_url,
+                        'description', description,
+                        'upload_date', upload_date
+                        )) from trailer where trailer.entity_url=m.url) as trailers
+                    from episode m;
+                    `;
 
         
-        let episodes = await query(q);
+        let result = con.query(q).stream();
+        const episodes = pEvent.iterator(result, 'data', {
+            resolutionEvents: ['end']
+        });
 
-        for(let m of episodes){
+        for await (let m of episodes){
             let episode = new schema.TVEpisode();
 
             if(m["url"]){
@@ -304,7 +451,6 @@ class IMDBExample{
                 episode.addKeywords(keywords);
             }
 
-            
             if(m["duration_minutes"]){
                 let timeRequired = new schema.TimeRequiredProperty();
                 timeRequired.setDuration(this.addDuration(m["duration_minutes"], schema));
@@ -342,24 +488,37 @@ class IMDBExample{
                 episode.addAggregateRating(aggregateRatingProp);
             }
 
-            
-            episode = await this.addActors(query, schema, episode, m["url"]);
-            episode = await this.addDirectors(query, schema, episode, m["url"]);
-            episode = await this.addCreators(query, schema, episode, m["url"]);
-            episode = await this.addGenres(query, schema, episode, m["url"]);
-            episode = await this.addReviews(query, schema, episode, m["url"]);
-            episode = await this.addTrailers(query, schema, episode, m["url"]);
+            if(m["actors"]){
+                episode = this.addActors(JSON.parse(m["actors"]), schema, episode);
+            }
 
+            if(m["directors"]){
+                episode = this.addDirectors(JSON.parse(m["directors"]), schema, episode);
+            }
+            
+            if(m["creators"]){
+                episode = this.addCreators(JSON.parse(m["creators"]), schema, episode);
+            }
+            
+            if(m["genres"]){
+                episode = this.addGenres(JSON.parse(m["genres"]), schema, episode);
+            }
+            
+            if(m["reviews"]){
+                episode = this.addReviews(JSON.parse(m["reviews"]), schema, episode, m["url"]);
+            }
+            
+            if(m["trailers"]){
+                episode = this.addTrailers(JSON.parse(m["trailers"]), schema, episode);
+            }
+            
 
             serializer.addItem(episode, "TVEpisode", schemaDescriptor);
 
         }
     }
 
-    async addActors(query, schema, entity, url){
-        let q = `SELECT url, name from actor where entity_url = ${JSON.stringify(url)};`
-        let actors = await query(q);
-        
+    addActors(actors, schema, entity){        
         for(let a of actors){
             let actor = new schema.ActorProperty();
             let person = new schema.Person();
@@ -383,10 +542,7 @@ class IMDBExample{
         return entity;
     }
 
-    async addDirectors(query, schema, entity, url){
-        let q = `SELECT url, name from director where entity_url = ${JSON.stringify(url)};`
-        let directors = await query(q);
-        
+    addDirectors(directors, schema, entity){
         for(let a of directors){
             let director = new schema.DirectorProperty();
             let person = new schema.Person();
@@ -410,10 +566,7 @@ class IMDBExample{
         return entity;
     }
 
-    async addCreators(query, schema, entity, url){
-        let q = `SELECT url, name, type from creator where entity_url = ${JSON.stringify(url)};`
-        let creators = await query(q);
-        
+    addCreators(creators, schema, entity){        
         for(let a of creators){
             let creator = new schema.CreatorProperty();
             
@@ -459,10 +612,7 @@ class IMDBExample{
         return entity;
     }
 
-    async addGenres(query, schema, entity, url){
-        let q = `SELECT name from genre where entity_url = ${JSON.stringify(url)};`;
-
-        let genres = await query(q);
+    addGenres(genres, schema, entity){
         for(let a of genres){
             let genre = new schema.GenreProperty();
 
@@ -476,19 +626,7 @@ class IMDBExample{
         return entity;
     }
 
-    async addReviews(query, schema, entity, url){
-        let q = `SELECT 
-                    author , 
-                    date_created , 
-                    language , 
-                    name , 
-                    review_body , 
-                    rating , 
-                    best_rating , 
-                    worst_rating 
-                from review where entity_url = ${JSON.stringify(url)};`;
-
-        let reviews = await query(q);
+    addReviews(reviews, schema, entity, url){
         for(let a of reviews){
             let reviewProp = new schema.ReviewProperty();
             let review = new schema.Review();
@@ -567,16 +705,7 @@ class IMDBExample{
         return entity;
     }
 
-    async addTrailers(query, schema, entity, url){
-        let q = `SELECT 
-                    name, 
-                    embed_url, 
-                    thumbnail_url , 
-                    description , 
-                    upload_date 
-                from trailer where entity_url = ${JSON.stringify(url)};`;
-
-        let trailers = await query(q);
+    addTrailers(trailers, schema, entity){
         for(let a of trailers){
             let trailer = new schema.TrailerProperty();
             let videoObject = new schema.VideoObject();
@@ -624,10 +753,16 @@ class IMDBExample{
 
     addDate(dateObj, schema){
         //Throws up lot of inconsisntent values. Needs to be taken care.
+        if(typeof dateObj == "string"){
+            dateObj = moment.utc(dateObj);
+        }
+        else{
+            dateObj = moment.utc(dateObj.toISOString());
+        }
         let dt = new schema.Date();
-        dt.setYear(dateObj.getFullYear());
-        dt.setMonth(dateObj.getMonth()+1);
-        dt.setDay(dateObj.getDate());
+        dt.setYear(dateObj.year());
+        dt.setMonth(dateObj.month()+1);
+        dt.setDay(dateObj.date());
         return dt;
     }
 
@@ -637,11 +772,11 @@ class IMDBExample{
         return duration;
     }
 
-    async generateFeed(query, schema, serializer, schemaDescriptor){
+    async generateFeed(con, schema, serializer, schemaDescriptor){
 
-        await this.moviesToProto(query, schema, serializer, schemaDescriptor);
-        await this.seriesToProto(query, schema, serializer, schemaDescriptor);
-        await this.episodesToProto(query, schema, serializer, schemaDescriptor);
+        await this.moviesToProto(con, schema, serializer, schemaDescriptor);
+        await this.seriesToProto(con, schema, serializer, schemaDescriptor);
+        await this.episodesToProto(con, schema, serializer, schemaDescriptor);
 
     }
 
