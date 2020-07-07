@@ -13,7 +13,8 @@
 # limitations under the License.
 import seeder
 import json
-import mysql
+import MySQLdb
+import MySQLdb.cursors
 import feed_generator
 import schema_pb2
 import schemaorgutils.serializer.serializer as serializer
@@ -25,13 +26,15 @@ def main():
     with open('./dump.json') as f:
       dump = json.load(f)
 
-    mydb = mysql.connector.connect(
+    mydb = MySQLdb.connect(
       host=config["DBConfig"]["host"],
       user=config["DBConfig"]["user"],
       password=config["DBConfig"]["password"],
+      cursorclass = MySQLdb.cursors.SSDictCursor  
     )
 
     cursor = mydb.cursor()
+    cursor.execute("use schemaorg_example")
     sdr = seeder.IMDBSeeder(cursor, config["DBConfig"]["dbname"])
     sdr.seed_db(cursor, dump["movies"], dump["tvseries"], dump["tvepisodes"])
     mydb.commit()

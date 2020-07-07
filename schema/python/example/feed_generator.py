@@ -14,20 +14,14 @@
 import json
 from datetime import datetime
 from datetime import date
-from datetime import time
 
 class IMDBExample:
-    """The IMDBExample reads the database to generate proto ItemList object from movies, series and episodes used for generating JSON-LD feed.
-
-    Attributes:
-        _position (int): Next available position in the itemlist.
+    """The IMDBExample reads the database to generate proto ItemList object from 
+    movies, series and episodes used for generating JSON-LD feed.
     """
-
-    def __init__(self):
-        self._position = 1
     
     def generate_feed(self,cursor, schema, serializer):
-        """Call __movies_to_proto, __series_to_proto, __episodes_to_proto and populate ItemList.
+        """Call __movies_to_proto, __series_to_proto, __episodes_to_proto and generate feed.
 
         Args:
             cursor (mysql.cursor): Mysql cursor which is used to query the database.
@@ -41,7 +35,7 @@ class IMDBExample:
         self.__episodes_to_proto( cursor, schema, serializer)
 
     def __movies_to_proto(self, cursor, schema, serializer):
-        """Make proto objects for movies and add them to ItemList.
+        """Make proto objects for movies and call serializer.add_item to serialize it.
 
         Args:
             cursor (mysql.cursor): Mysql cursor which is used to query the database.
@@ -50,66 +44,123 @@ class IMDBExample:
 
         """
         
-        cursor.execute("SELECT url, name , image , content_rating , description , date_published , keywords , duration_minutes , rating_count , rating , best_rating , worst_rating from movie;")
+        query = """
+        select 
+        m.url as url, 
+        m.name as name,
+        m.image as image,
+        m.content_rating as content_rating, 
+        m.description as description, 
+        m.date_published as date_published, 
+        m.keywords as keywords, 
+        m.duration_minutes as duration_minutes, 
+        m.rating_count as rating_count, 
+        m.rating as rating, 
+        m.best_rating as best_rating, 
+        m.worst_rating as worst_rating, 
+        (select JSON_ARRAYAGG(JSON_OBJECT(
+            'name', name
+            )) from genre where genre.entity_url=m.url) as genres,
+        (select JSON_ARRAYAGG(JSON_OBJECT(
+            'name', name, 
+            'url', url
+            )) from actor where actor.entity_url=m.url) as actors,
+        (select JSON_ARRAYAGG(JSON_OBJECT(
+            'name', name, 
+            'url', url
+            )) from director where director.entity_url=m.url) as directors,
+        (select JSON_ARRAYAGG(JSON_OBJECT(
+            'name', name, 
+            'url', url,
+            'type', type
+            )) from creator where creator.entity_url=m.url) as creators,
+        (select JSON_ARRAYAGG(JSON_OBJECT(
+            'author', author, 
+            'date_created', date_created,
+            'language', language,
+            'name', name,
+            'review_body', review_body,
+            'rating', rating,
+            'best_rating', best_rating,
+            'worst_rating', worst_rating
+            )) from review where review.entity_url=m.url) as reviews,
+        (select JSON_ARRAYAGG(JSON_OBJECT(
+            'name', name,
+            'embed_url', embed_url,
+            'thumbnail_url', thumbnail_url,
+            'description', description,
+            'upload_date', upload_date
+            )) from trailer where trailer.entity_url=m.url) as trailers
 
-        query_list = list(cursor)
+        from movie m;
+        """
+        cursor.execute(query)
 
-        for m in query_list:
+        m = cursor.fetchone() 
+        while m is not None:
             movie = schema.Movie()
 
-            if m[0]:
-                movie.url.add().url = m[0]
-                movie.id = m[0]
+            if m["url"]:
+                movie.url.add().url = m["url"]
+                movie.id = m["url"]
 
-            if m[1]:
-                movie.name.add().text = m[1]
+            if m["name"]:
+                movie.name.add().text = m["name"]
 
-            if m[2]:
-                movie.image.add().url = m[2]
+            if m["image"]:
+                movie.image.add().url = m["image"]
 
-            if m[3]:
-                movie.content_rating.add().text=m[3]
+            if m["content_rating"]:
+                movie.content_rating.add().text=m["content_rating"]
 
-            if m[4]:
-                movie.description.add().text = m[4]
+            if m["description"]:
+                movie.description.add().text = m["description"]
 
-            if m[5]:
+            if m["date_published"]:
                 date_published = movie.date_published.add().date
-                date_published = self.__add_date(date_published, m[5])
+                date_published = self.__add_date(date_published, m["date_published"])
 
-            if m[6]:
-                movie.keywords.add().text = m[6]
+            if m["keywords"]:
+                movie.keywords.add().text = m["keywords"]
 
-            if m[7]:
+            if m["duration_minutes"]:
                 duration = movie.duration.add().duration
-                duration = self.__add_duration(duration, m[7])
+                duration = self.__add_duration(duration, m["duration_minutes"])
 
-            if m[9]:
+            if m["rating"]:
                 aggregate_rating = movie.aggregate_rating.add().aggregate_rating
 
-                if m[8]:
-                    aggregate_rating.rating_count.add().integer = int(m[8])
+                if m["rating_count"]:
+                    aggregate_rating.rating_count.add().integer = int(m["rating_count"])
 
-                if m[9]:
-                    aggregate_rating.rating_value.add().number = float(m[9])
+                if m["rating"]:
+                    aggregate_rating.rating_value.add().number = float(m["rating"])
 
-                if m[10]:
-                    aggregate_rating.best_rating.add().number = float(m[10])
+                if m["best_rating"]:
+                    aggregate_rating.best_rating.add().number = float(m["best_rating"])
 
-                if m[11]:
-                    aggregate_rating.worst_rating.add().number = float(m[11])
+                if m["worst_rating"]:
+                    aggregate_rating.worst_rating.add().number = float(m["worst_rating"])
 
-            movie = self.__add_genres(m[0], movie, cursor)
-            movie = self.__add_actors(m[0], movie, cursor)
-            movie = self.__add_directors(m[0], movie, cursor)
-            movie = self.__add_creators(m[0], movie, cursor)
-            movie = self.__add_reviews(m[0], movie, cursor)
-            movie = self.__add_trailers(m[0], movie, cursor)
+            if m["genres"]:
+                movie = self.__add_genres(movie, json.loads(m["genres"]))
+            if m["actors"]:
+                movie = self.__add_actors(movie, json.loads(m["actors"]))
+            if m["directors"]:
+                movie = self.__add_directors(movie, json.loads(m["directors"]))
+            if m["creators"]:
+                movie = self.__add_creators(movie, json.loads(m["creators"]))
+            if m["reviews"]:
+                movie = self.__add_reviews(m["url"], movie, json.loads(m["reviews"]))
+            if m["trailers"]:
+                movie = self.__add_trailers(movie, json.loads(m["trailers"]))
+            
             serializer.add_item(movie, schema)
+            m = cursor.fetchone()
 
 
     def __series_to_proto(self, cursor, schema, serializer):
-        """Make proto objects for series and add them to ItemList.
+        """Make proto objects for series and call serializer.add_item to serialize it.
 
         Args:
             cursor (mysql.cursor): Mysql cursor which is used to query the database.
@@ -118,62 +169,118 @@ class IMDBExample:
 
         """
         
-        cursor.execute("SELECT url, name , image , content_rating , description , date_published , keywords , rating_count , rating , best_rating , worst_rating from series;")
+        query = """
+        select 
+        m.url as url, 
+        m.name as name,
+        m.image as image,
+        m.content_rating as content_rating, 
+        m.description as description, 
+        m.date_published as date_published, 
+        m.keywords as keywords, 
+        m.rating_count as rating_count, 
+        m.rating as rating, 
+        m.best_rating as best_rating, 
+        m.worst_rating as worst_rating, 
+        (select JSON_ARRAYAGG(JSON_OBJECT(
+            'name', name
+            )) from genre where genre.entity_url=m.url) as genres,
+        (select JSON_ARRAYAGG(JSON_OBJECT(
+            'name', name, 
+            'url', url
+            )) from actor where actor.entity_url=m.url) as actors,
+        (select JSON_ARRAYAGG(JSON_OBJECT(
+            'name', name, 
+            'url', url
+            )) from director where director.entity_url=m.url) as directors,
+        (select JSON_ARRAYAGG(JSON_OBJECT(
+            'name', name, 
+            'url', url,
+            'type', type
+            )) from creator where creator.entity_url=m.url) as creators,
+        (select JSON_ARRAYAGG(JSON_OBJECT(
+            'author', author, 
+            'date_created', date_created,
+            'language', language,
+            'name', name,
+            'review_body', review_body,
+            'rating', rating,
+            'best_rating', best_rating,
+            'worst_rating', worst_rating
+            )) from review where review.entity_url=m.url) as reviews,
+        (select JSON_ARRAYAGG(JSON_OBJECT(
+            'name', name,
+            'embed_url', embed_url,
+            'thumbnail_url', thumbnail_url,
+            'description', description,
+            'upload_date', upload_date
+            )) from trailer where trailer.entity_url=m.url) as trailers
 
-        query_list = list(cursor)
+        from series m;
+        """
+        cursor.execute(query)
 
-        for m in query_list:
-            tv_series = schema.TVSeries()
+        m = cursor.fetchone() 
+        while m is not None:
+            tvseries = schema.TVSeries()
 
-            if m[0]:
-                tv_series.id = m[0]
-                tv_series.url.add().url = m[0]
+            if m["url"]:
+                tvseries.url.add().url = m["url"]
+                tvseries.id = m["url"]
 
-            if m[1]:
-                tv_series.name.add().text = m[1]
+            if m["name"]:
+                tvseries.name.add().text = m["name"]
 
-            if m[2]:
-                tv_series.image.add().url = m[2]
+            if m["image"]:
+                tvseries.image.add().url = m["image"]
 
-            if m[3]:
-                tv_series.content_rating.add().text=m[3]
+            if m["content_rating"]:
+                tvseries.content_rating.add().text=m["content_rating"]
 
-            if m[4]:
-                tv_series.description.add().text = m[4]
+            if m["description"]:
+                tvseries.description.add().text = m["description"]
 
-            if m[5]:
-                date_published = tv_series.date_published.add().date
-                date_published = self.__add_date(date_published, m[5])
+            if m["date_published"]:
+                date_published = tvseries.date_published.add().date
+                date_published = self.__add_date(date_published, m["date_published"])
 
-            if m[6]:
-                tv_series.keywords.add().text = m[6]
+            if m["keywords"]:
+                tvseries.keywords.add().text = m["keywords"]
 
-            if m[8]:
-                aggregate_rating = tv_series.aggregate_rating.add().aggregate_rating
+            if m["rating"]:
+                aggregate_rating = tvseries.aggregate_rating.add().aggregate_rating
 
-                if m[7]:
-                    aggregate_rating.rating_count.add().integer = int(m[7])
+                if m["rating_count"]:
+                    aggregate_rating.rating_count.add().integer = int(m["rating_count"])
 
-                if m[8]:
-                    aggregate_rating.rating_value.add().number = float(m[8])
+                if m["rating"]:
+                    aggregate_rating.rating_value.add().number = float(m["rating"])
 
-                if m[9]:
-                    aggregate_rating.best_rating.add().number = float(m[9])
-                    
-                if m[10]:
-                    aggregate_rating.worst_rating.add().number = float(m[10])
+                if m["best_rating"]:
+                    aggregate_rating.best_rating.add().number = float(m["best_rating"])
 
-            tv_series = self.__add_genres(m[0], tv_series, cursor)
-            tv_series = self.__add_actors(m[0], tv_series, cursor)
-            tv_series = self.__add_directors(m[0], tv_series, cursor)
-            tv_series = self.__add_creators(m[0], tv_series, cursor)
-            tv_series = self.__add_reviews(m[0], tv_series, cursor)
-            tv_series = self.__add_trailers(m[0], tv_series, cursor)
-            serializer.add_item(tv_series, schema)
+                if m["worst_rating"]:
+                    aggregate_rating.worst_rating.add().number = float(m["worst_rating"])
+
+            if m["genres"]:
+                tvseries = self.__add_genres(tvseries, json.loads(m["genres"]))
+            if m["actors"]:
+                tvseries = self.__add_actors(tvseries, json.loads(m["actors"]))
+            if m["directors"]:
+                tvseries = self.__add_directors(tvseries, json.loads(m["directors"]))
+            if m["creators"]:
+                tvseries = self.__add_creators(tvseries, json.loads(m["creators"]))
+            if m["reviews"]:
+                tvseries = self.__add_reviews(m["url"], tvseries, json.loads(m["reviews"]))
+            if m["trailers"]:
+                tvseries = self.__add_trailers(tvseries, json.loads(m["trailers"]))
+            
+            serializer.add_item(tvseries, schema)
+            m = cursor.fetchone()
 
 
     def __episodes_to_proto(self, cursor, schema, serializer):
-        """Make proto objects for episodes and add them to ItemList.
+        """Make proto objects for episodes and call serializer.add_item to serialize it.
 
         Args:
             cursor (mysql.cursor): Mysql cursor which is used to query the database.
@@ -182,283 +289,335 @@ class IMDBExample:
             
         """
 
-        cursor.execute("SELECT url, name , image , content_rating , description , date_published , keywords , duration_minutes , rating_count , rating , best_rating , worst_rating from episode;")
+        query = """
+        select 
+        m.url as url, 
+        m.name as name,
+        m.image as image,
+        m.content_rating as content_rating, 
+        m.description as description, 
+        m.date_published as date_published, 
+        m.keywords as keywords, 
+        m.duration_minutes as duration_minutes, 
+        m.rating_count as rating_count, 
+        m.rating as rating, 
+        m.best_rating as best_rating, 
+        m.worst_rating as worst_rating, 
+        (select JSON_ARRAYAGG(JSON_OBJECT(
+            'name', name
+            )) from genre where genre.entity_url=m.url) as genres,
+        (select JSON_ARRAYAGG(JSON_OBJECT(
+            'name', name, 
+            'url', url
+            )) from actor where actor.entity_url=m.url) as actors,
+        (select JSON_ARRAYAGG(JSON_OBJECT(
+            'name', name, 
+            'url', url
+            )) from director where director.entity_url=m.url) as directors,
+        (select JSON_ARRAYAGG(JSON_OBJECT(
+            'name', name, 
+            'url', url,
+            'type', type
+            )) from creator where creator.entity_url=m.url) as creators,
+        (select JSON_ARRAYAGG(JSON_OBJECT(
+            'author', author, 
+            'date_created', date_created,
+            'language', language,
+            'name', name,
+            'review_body', review_body,
+            'rating', rating,
+            'best_rating', best_rating,
+            'worst_rating', worst_rating
+            )) from review where review.entity_url=m.url) as reviews,
+        (select JSON_ARRAYAGG(JSON_OBJECT(
+            'name', name,
+            'embed_url', embed_url,
+            'thumbnail_url', thumbnail_url,
+            'description', description,
+            'upload_date', upload_date
+            )) from trailer where trailer.entity_url=m.url) as trailers
 
-        query_list = list(cursor)
+        from episode m;
+        """
+        cursor.execute(query)
 
-        for m in query_list:
-            tv_episode = schema.TVEpisode()
+        m = cursor.fetchone() 
+        while m is not None:
+            episode = schema.TVEpisode()
 
-            if m[0]:
-                tv_episode.url.add().url = m[0]
-                tv_episode.id = m[0]
+            if m["url"]:
+                episode.url.add().url = m["url"]
+                episode.id = m["url"]
 
-            if m[1]:
-                tv_episode.name.add().text = m[1]
+            if m["name"]:
+                episode.name.add().text = m["name"]
 
-            if m[2]:
-                tv_episode.image.add().url = m[2]
+            if m["image"]:
+                episode.image.add().url = m["image"]
 
-            if m[3]:
-                tv_episode.content_rating.add().text=m[3]
+            if m["content_rating"]:
+                episode.content_rating.add().text=m["content_rating"]
 
-            if m[4]:
-                tv_episode.description.add().text = m[4]
+            if m["description"]:
+                episode.description.add().text = m["description"]
 
-            if m[5]:
-                date_published = tv_episode.date_published.add().date
-                date_published = self.__add_date(date_published, m[5])
+            if m["date_published"]:
+                date_published = episode.date_published.add().date
+                date_published = self.__add_date(date_published, m["date_published"])
 
-            if m[6]:
-                tv_episode.keywords.add().text = m[6]
+            if m["keywords"]:
+                episode.keywords.add().text = m["keywords"]
 
-            if m[7]:
-                duration = tv_episode.time_required.add().duration
-                duration = self.__add_duration(duration, m[7])
+            if m["duration_minutes"]:
+                duration = episode.time_required.add().duration
+                duration = self.__add_duration(duration, m["duration_minutes"])
 
-            if m[9]:
-                aggregate_rating = tv_episode.aggregate_rating.add().aggregate_rating
+            if m["rating"]:
+                aggregate_rating = episode.aggregate_rating.add().aggregate_rating
 
-                if m[8]:
-                    aggregate_rating.rating_count.add().integer = int(m[8])
+                if m["rating_count"]:
+                    aggregate_rating.rating_count.add().integer = int(m["rating_count"])
 
-                if m[9]:
-                    aggregate_rating.rating_value.add().number = float(m[9])
+                if m["rating"]:
+                    aggregate_rating.rating_value.add().number = float(m["rating"])
 
-                if m[10]:
-                    aggregate_rating.best_rating.add().number = float(m[10])
+                if m["best_rating"]:
+                    aggregate_rating.best_rating.add().number = float(m["best_rating"])
 
-                if m[11]:
-                    aggregate_rating.worst_rating.add().number = float(m[11])
+                if m["worst_rating"]:
+                    aggregate_rating.worst_rating.add().number = float(m["worst_rating"])
 
-            tv_episode = self.__add_genres(m[0], tv_episode, cursor)
-            tv_episode = self.__add_actors(m[0], tv_episode, cursor)
-            tv_episode = self.__add_directors(m[0], tv_episode, cursor)
-            tv_episode = self.__add_creators(m[0], tv_episode, cursor)
-            tv_episode = self.__add_reviews(m[0], tv_episode, cursor)
-            tv_episode = self.__add_trailers(m[0], tv_episode, cursor)
-            serializer.add_item(tv_episode, schema)
+            if m["genres"]:
+                episode = self.__add_genres(episode, json.loads(m["genres"]))
+            if m["actors"]:
+                episode = self.__add_actors(episode, json.loads(m["actors"]))
+            if m["directors"]:
+                episode = self.__add_directors(episode, json.loads(m["directors"]))
+            if m["creators"]:
+                episode = self.__add_creators(episode, json.loads(m["creators"]))
+            if m["reviews"]:
+                episode = self.__add_reviews(m["url"], episode, json.loads(m["reviews"]))
+            if m["trailers"]:
+                episode = self.__add_trailers(episode, json.loads(m["trailers"]))
+            
+            serializer.add_item(episode, schema)
+            m = cursor.fetchone()
 
 
     def __add_date(self, date_proto, date_obj):
-        """Set fields of date proto object from python date object.
+        """Set fields of date proto object from python date object or python date string.
 
         Args:
-            cursor (mysql.cursor): Mysql cursor which is used to query the database.
             date_proto (proto object): Date proto object.
-            date_obj (date object): Python date object.
+            date_obj (datetime.date | string): Datetime date object or mysql date string.
         
         Returns:
             date_proto (proto object): Date proto object with fields set.
         """
-
+        
+        if isinstance(date_obj, str):
+            date_obj = datetime.strptime(date_obj, '%Y-%m-%d')
+        
         date_proto.year = date_obj.year
         date_proto.month = date_obj.month
         date_proto.day = date_obj.day
         return date_proto
 
-    def __add_datetime(self, datetime_proto, datetime_obj):
-        """Set fields of datetime proto object from python date object.
+    def __add_date_from_datetime(self, date_proto, datetime_obj):
+        """Set fields of date proto object from python datetime object or mysql datetime string.
 
         Args:
-            cursor (mysql.cursor): Mysql cursor which is used to query the database.
-            datetime_proto (proto object): Datetime proto object.
-            datetime_obj (datetime object): Python datetime object.
+            date_proto (proto object): Date proto object.
+            datetime_obj (datetime.datetime | string): Datetime date object or mysql datetime string.
         
         Returns:
-            datetime_proto (proto object): Datetime proto object with fields set.
+            date_proto (proto object): Date proto object with fields set.
         """
+        
+        if isinstance(datetime_obj, str):
+            datetime_obj = datetime.strptime(datetime_obj, '%Y-%m-%d %H:%M:%S.%f')
+        
+        date_proto.year = datetime_obj.year
+        date_proto.month = datetime_obj.month
+        date_proto.day = datetime_obj.day
+        return date_proto
 
-        datetime_obj.time.hours = datetime_obj.hours
-        datetime_obj.time.minutes = datetime_obj.minutes
-        datetime_obj.time.seconds = datetime_obj.seconds
-
-        return datetime_obj
 
     def __add_duration(self, duration_proto, duration_minutes):
+        """Set fields of duration proto object from duration in minutes.
 
+        Args:
+            duration_proto (proto object): Duration proto object.
+            duration_minutes (integer): Duration in minutes.
+        
+        Returns:
+            duration_proto (proto object): Duration proto object with fields set.
+        """
         duration_proto.seconds = duration_minutes * 60
         return duration_proto
 
 
-    def __add_genres(self, url, entity, cursor):
+    def __add_genres(self, entity, genres):
         """Make proto objects for genres and add them to entity.
 
         Args:
-            cursor (mysql.cursor): Mysql cursor which is used to query the database.
-            url (str): The url of entity whose genres need to be added.
             entity (schema object): Schema object to which genres need to be added.
+            genres (list): List of genres to be added.
         
         Returns:
             entity (schema object): Updated entity which includes genres.
         """
 
-        cursor.execute("SELECT name from genre where entity_url = {};".format(json.dumps(url))) 
-
-        for x in cursor:
-            entity.genre.add().text = x[0]
+        for x in genres:
+            entity.genre.add().text = x["name"]
 
         return entity
 
-    def __add_actors(self, url, entity, cursor):
+    def __add_actors(self, entity, actors):
         """Make proto objects for actors and add them to entity.
 
         Args:
-            cursor (mysql.cursor): Mysql cursor which is used to query the database.
-            url (str): The url of entity whose actors need to be added.
             entity (schema object): Schema object to which actors need to be added.
+            actors (list): List of actors to be added.
         
         Returns:
             entity (schema object): Updated entity which includes actors.
-        """
-
-        cursor.execute("SELECT url, name from actor where entity_url = {};".format(json.dumps(url))) 
+        """        
         
-        for x in cursor:
+        for x in actors:
             person = entity.actor.add().person
-            if x[1]:
-                person.name.add().text = x[1]
-            if x[0]:
-                person.url.add().url = x[0]
-                person.id = x[0]
+            if x["name"]:
+                person.name.add().text = x["name"]
+            if x["url"]:
+                person.url.add().url = x["url"]
+                person.id = x["url"]
 
         return entity
 
-    def __add_directors(self, url, entity, cursor):
+    def __add_directors(self, entity, directors):
         """Make proto objects for directors and add them to entity.
 
         Args:
-            cursor (mysql.cursor): Mysql cursor which is used to query the database.
-            url (str): The url of entity whose directors need to be added.
             entity (schema object): Schema object to which directors need to be added.
+            directors (list): List of directors to be added.
         
         Returns:
             entity (schema object): Updated entity which includes directors.
         """
-
-        cursor.execute("SELECT url, name from director where entity_url = {};".format(json.dumps(url))) 
         
-        for x in cursor:
+        for x in directors:
             person = entity.director.add().person
-            if x[1]:
-                person.name.add().text = x[1]
-            if x[0]:
-                person.url.add().url = x[0]
-                person.id = x[0]
+            if x["name"]:
+                person.name.add().text = x["name"]
+            if x["url"]:
+                person.url.add().url = x["url"]
+                person.id = x["url"]
 
         return entity
 
-    def __add_creators(self, url, entity, cursor):
+    def __add_creators(self, entity, creators):
         """Make proto objects for creators and add them to entity.
 
         Args:
-            cursor (mysql.cursor): Mysql cursor which is used to query the database.
-            url (str): The url of entity whose creators need to be added.
             entity (schema object): Schema object to which creators need to be added.
+            creators (list): List of creators to be added.
         
         Returns:
             entity (schema object): Updated entity which includes creators.
         """
-
-        cursor.execute("SELECT url, name, type from creator where entity_url = {};".format(json.dumps(url))) 
         
-        for x in cursor:
-            if x[2] == "PERSON":
+        for x in creators:
+            if x["type"] == "PERSON":
                 person = entity.creator.add().person
-                if x[1]:
-                    person.name.add().text = x[1]
-                if x[0]:
-                    person.url.add().url = x[0]
-                    person.id = x[0]
-            elif x[2] == "ORGANIZATION":
+                if x["name"]:
+                    person.name.add().text = x["name"]
+                if x["url"]:
+                    person.url.add().url = x["url"]
+                    person.id = x["url"]
+            elif x["type"] == "ORGANIZATION":
                 organization = entity.creator.add().organization
-                if x[1]:
-                    organization.name.add().text = x[1]
-                if x[0]:
-                    organization.url.add().url = x[0]
-                    organization.id = x[0]
+                if x["name"]:
+                    organization.name.add().text = x["name"]
+                if x["url"]:
+                    organization.url.add().url = x["url"]
+                    organization.id = x["url"]
 
         return entity
 
-    def __add_reviews(self, url, entity, cursor):
+    def __add_reviews(self, url, entity, reviews):
         """Make proto objects for reviews and add them to entity.
 
         Args:
-            cursor (mysql.cursor): Mysql cursor which is used to query the database.
             url (str): The url of entity whose reviews need to be added.
             entity (schema object): Schema object to which reviews need to be added.
+            reviews (list): List of reviews to be added.
         
         Returns:
             entity (schema object): Updated entity which includes reviews.
         """
-
-        cursor.execute("SELECT author , date_created , language , name , review_body , rating , best_rating , worst_rating from review where entity_url = {};".format(json.dumps(url)))
         
-        for x in cursor:
+        for x in reviews:
             review = entity.review.add().review
 
-            if x[0]:
-                review.author.add().person.name.add().text = x[0]
+            if x["author"]:
+                review.author.add().person.name.add().text = x["author"]
 
-            if x[1]:
+            if x["date_created"]:
                 date_created = review.date_created.add().date
-                self.__add_date(date_created, x[1])
+                self.__add_date(date_created, x["date_created"])
 
-            if x[2]:
-                review.in_language.add().text = x[2]
+            if x["language"]:
+                review.in_language.add().text = x["language"]
 
-            if x[3]:
-                review.name.add().text = x[3]
+            if x["name"]:
+                review.name.add().text = x["name"]
 
-            if x[4]:
-                review.review_body.add().text = x[4]
+            if x["review_body"]:
+                review.review_body.add().text = x["review_body"]
             
-            if x[5]: 
+            if x["rating"]: 
                 rating = review.review_rating.add().rating
-                rating.rating_value.add().number = float(x[5])
+                rating.rating_value.add().number = float(x["rating"])
 
-                if x[6]:
-                    rating.best_rating.add().number = float(x[6])
-                if x[7]:
-                    rating.worst_rating.add().number = float(x[7])
+                if x["best_rating"]:
+                    rating.best_rating.add().number = float(x["best_rating"])
+                if x["worst_rating"]:
+                    rating.worst_rating.add().number = float(x["worst_rating"])
             
             review.item_reviewed.add().creative_work.url.add().url = url
 
         return entity
 
-    def __add_trailers(self, url, entity, cursor):
+    def __add_trailers(self, entity, trailers):
         """Make proto objects for trailers and add them to entity.
 
         Args:
-            cursor (mysql.cursor): Mysql cursor which is used to query the database.
-            url (str): The url of entity whose trailers need to be added.
             entity (schema object): Schema object to which trailers need to be added.
+            trailers (list): List of trailers to be added.
         
         Returns:
             entity (schema object): Updated entity which includes trailers.
         """
 
-        cursor.execute("SELECT name, embed_url, thumbnail_url , description , upload_date from trailer where entity_url = {}".format(json.dumps(url)))
-
-        for x in cursor:
+        for x in trailers:
             trailer = entity.trailer.add().video_object
             
-            if x[0]:
-                trailer.name.add().text = x[0]
+            if x["name"]:
+                trailer.name.add().text = x["name"]
             
-            if x[1]:
-                trailer.embed_url.add().url = x[1]
-                trailer.id = x[1]
+            if x["embed_url"]:
+                trailer.embed_url.add().url = x["embed_url"]
+                trailer.id = x["embed_url"]
             
-            if x[2]:
-                trailer.thumbnail_url.add().url = x[2]
-                trailer.thumbnail.add().image_object.content_url.add().url = x[2]
+            if x["thumbnail_url"]:
+                trailer.thumbnail_url.add().url = x["thumbnail_url"]
+                trailer.thumbnail.add().image_object.content_url.add().url = x["thumbnail_url"]
             
-            if x[3]:
-                trailer.description.add().text = x[3]
+            if x["description"]:
+                trailer.description.add().text = x["description"]
 
-            if x[4]:
+            if x["upload_date"]:
                 date_obj = trailer.upload_date.add().date
-                self.__add_date(date_obj, x[4])
+                self.__add_date_from_datetime(date_obj, x["upload_date"])
         return entity
 

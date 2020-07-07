@@ -1,2 +1,2 @@
-mysql-connector-python
+mysqlclient
 python-dateutil
