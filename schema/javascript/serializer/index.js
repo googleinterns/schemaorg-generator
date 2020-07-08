@@ -16,6 +16,7 @@ const util = require('util');
 const moment = require('moment');
 const assert = require('assert');
 const sortObject = require("sort-object-keys");
+const deasync = require("deasync");
 
 /**
  * JSONLDSerializer is used to serialize schema proto object to JSONLD.
@@ -337,11 +338,16 @@ class JSONLDFeedSerializer extends JSONLDSerializer {
 
         let entitySerialized = super.protoToDict(entity, entityType, schemaDescriptor);
         
-        // if(this.validator){
-        //     let conforms = await this.validator.addEntity(entitySerialized);
+        if(this.validator){
+            let conforms, done=False;
+            this.validator.addEntity(entitySerialized).then(v => {
+                conforms = v;
+                done = true;
+            });
 
-        //     if(!conforms) return;
-        // }
+            deasync.loopWhile(function(){return !done;});
+            if(!conforms) return;
+        }
         
         if(this.count){
             fs.writeSync(this.outFile, ",");
