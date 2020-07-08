@@ -167,6 +167,20 @@ class SchemaValidator():
         return conforms
 
 
+    def get_aggregates(self):
+        aggregates = {}
+
+        for x in self.reports.keys():
+            aggregates[x] = {}
+            aggregates[x]["Info"] = 0
+            aggregates[x]["Warning"] = 0
+            aggregates[x]["Violation"] = 0
+
+            for r in self.reports[x]:
+                aggregates[x][r.severity] += 1
+
+        return aggregates
+    
     def write_report_and_close(self):
         """Generate a report, write it to file and close the validator."""
 
@@ -179,7 +193,9 @@ class SchemaValidator():
         env = Environment(loader=file_loader, trim_blocks=True, lstrip_blocks=True)
         env.globals["enumerate"] = enumerate
 
-        out_html = env.get_template('report.html').render(results = self.reports)
+        aggregates = self.get_aggregates()
+        items_list = ', '.join(sorted(self.reports.keys()))
+        out_html = env.get_template('report.html').render(results = self.reports, aggregates = aggregates, items=items_list)
 
         f = open(self._report_file, "w")
         f.write(out_html)
