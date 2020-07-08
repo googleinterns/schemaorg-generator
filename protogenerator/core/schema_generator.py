@@ -217,11 +217,11 @@ class SchemaGenerator():
         class_to_children = utils.get_children(inheritance_graph)
 
         # Temporary Code
-        class_to_children[rdflib.URIRef('http://schema.org/Audience')].add(rdflib.URIRef("http://schema.org/Researcher"))
-        class_to_prop["SteeringPositionValue"] = class_to_prop["Enumeration"]
-        class_to_prop["DriveWheelConfigurationValue"] = class_to_prop["Enumeration"]
-        enumerations.add("SteeringPositionValue")
-        enumerations.add("DriveWheelConfigurationValue")
+        # class_to_children[rdflib.URIRef('http://schema.org/Audience')].add(rdflib.URIRef("http://schema.org/Researcher"))
+        # class_to_prop["SteeringPositionValue"] = class_to_prop["Enumeration"]
+        # class_to_prop["DriveWheelConfigurationValue"] = class_to_prop["Enumeration"]
+        # enumerations.add("SteeringPositionValue")
+        # enumerations.add("DriveWheelConfigurationValue")
         # End of temporary code
 
         prop_to_class = dict()

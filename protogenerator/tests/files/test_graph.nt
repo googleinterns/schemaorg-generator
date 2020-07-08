@@ -1,0 +1,27 @@
+<http://schema.org/alpha> <http://schema.org/rangeIncludes> <http://schema.org/Number> .
+<http://schema.org/alpha> <http://schema.org/rangeIncludes> <http://schema.org/ChildClassB> .
+<http://schema.org/ChildClassC> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Class> .
+<http://schema.org/EnumValueOne> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/ChildClassB> .
+<http://schema.org/alpha> <http://schema.org/domainIncludes> <http://schema.org/RootClass> .
+<http://schema.org/RootClass> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Class> .
+<http://schema.org/ChildClassA> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://schema.org/RootClass> .
+<http://schema.org/ChildClassC> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://schema.org/ChildClassB> .
+<http://schema.org/beta> <http://schema.org/rangeIncludes> <http://schema.org/Text> .
+<http://schema.org/EnumValueTwo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/ChildClassB> .
+<http://schema.org/gamma> <http://schema.org/rangeIncludes> <http://schema.org/ChildClassA> .
+<http://schema.org/beta> <http://schema.org/rangeIncludes> <http://schema.org/ChildClassB> .
+<http://schema.org/beta> <http://schema.org/domainIncludes> <http://schema.org/ChildClassA> .
+<http://schema.org/ChildClassB> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://schema.org/RootClass> .
+<http://schema.org/ChildClassA> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Class> .
+<http://schema.org/beta> <http://schema.org/domainIncludes> <http://schema.org/Enumeration> .
+<http://schema.org/RootClass> <http://www.w3.org/2000/01/rdf-schema#comment> "Comment for RootClass.\nSecond Line of Comment." .
+<http://schema.org/beta> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<http://schema.org/alpha> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<http://schema.org/Enumeration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Class> .
+<http://schema.org/ChildClassB> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://schema.org/Enumeration> .
+<http://schema.org/gamma> <http://schema.org/rangeIncludes> <http://schema.org/Float> .
+<http://schema.org/ChildClassB> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Class> .
+<http://schema.org/gamma> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> .
+<http://schema.org/alpha> <http://www.w3.org/2000/01/rdf-schema#comment> "Comment for alpha.\nSecond Line of Comment." .
+<http://schema.org/gamma> <http://schema.org/domainIncludes> <http://schema.org/ChildClassB> .
+
