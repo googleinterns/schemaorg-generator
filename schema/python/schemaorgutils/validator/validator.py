@@ -78,7 +78,7 @@ class SchemaValidator():
                 self.add_entity(x["item"])
         elif typ == "DataFeed":
             for x in entity["dataFeedElement"]:
-                self.add_entity(x["item"])
+                self.add_entity(x)
         else:
             self._position = self._position + 1
             id = ""
@@ -148,7 +148,7 @@ class SchemaValidator():
             if msg:
                 message = str(msg)
 
-            result = utils.ResultRow(src_identifier, message, path + "." + attr, json.dumps(value), severity)
+            result = utils.ResultRow(src_identifier, message, path + "." + attr, str(value), severity)
             self.reports[typ].append(result)
 
             if severity == "Violation":

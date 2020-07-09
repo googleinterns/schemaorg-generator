@@ -51,3 +51,11 @@ class ResultRow():
         self.property_path = property_path
         self.value = value
         self.severity = severity
+    
+    def __eq__(self, other):
+        return ((self.id == other.id)
+                 and (self.message == other.message) 
+                 and (self.property_path == other.property_path) 
+                 and (self.value == other.value)
+                 and (self.severity == other.severity)
+                 )
