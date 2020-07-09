@@ -66,32 +66,43 @@ class SchemaValidator{
             "@vocab": "http://schema.org/" 
         }
 
-        this.position = this.position + 1;
-        let id = "";
-
-        if(entity["@id"]) id = "Id: " + entity["@id"];
-        else id = "Position: " + this.position.toString()
-
-        entity["@id"] = "Start Node Id";
-        let gid = factory.namedNode("Start Node Id");
-        let typ = entity["@type"];
-        
-        let data = await utils.loadJSONLd(entity);
-        let validator = new SHACLValidator(this.shapes, { factory })
-        let resultGraph = (await validator.validate(data)).dataset;
         let conforms = true;
-        let startNodes = [];
+        let typ = entity["@type"];
 
-        for(let q of resultGraph.match(null, resultConstants["Type"], resultConstants["ValidationResult"])){
-            if(resultGraph.has(factory.quad(q["subject"], resultConstants["FocusNode"], gid))){
-                startNodes.push(q["subject"]);
+        if(typ == "ItemList" ){
+            for(let i =0; i< entity["itemListElement"].length; i++){
+                conforms = conforms && (await this.addEntity(entity["itemListElement"][i]["item"]));
             }
         }
-
-        for( let s of startNodes){
-            conforms = conforms && this.addReport(resultGraph, s, typ, "", id);
+        else if(typ == "DataFeed"){
+            for(let i =0; i< entity["dataFeedElement"].length; i++){
+                conforms = conforms && (await this.addEntity(entity["dataFeedElement"][i]));
+            }
         }
-
+        else{
+            let id = "";
+            this.position = this.position + 1;
+            if(entity["@id"]) id = "Id: " + entity["@id"];
+            else id = "Position: " + this.position.toString()
+    
+            entity["@id"] = "Start Node Id";
+            let gid = factory.namedNode("Start Node Id");
+            
+            let data = await utils.loadJSONLd(entity);
+            let validator = new SHACLValidator(this.shapes, { factory })
+            let resultGraph = (await validator.validate(data)).dataset;
+            let startNodes = [];
+    
+            for(let q of resultGraph.match(null, resultConstants["Type"], resultConstants["ValidationResult"])){
+                if(resultGraph.has(factory.quad(q["subject"], resultConstants["FocusNode"], gid))){
+                    startNodes.push(q["subject"]);
+                }
+            }
+    
+            for( let s of startNodes){
+                conforms = conforms && this.addReport(resultGraph, s, typ, "", id);
+            }
+        }
         return conforms;
 
     }
@@ -164,13 +175,13 @@ class SchemaValidator{
         let typ = dataTypes[node.datatype.value];
 
         if(typ == "integer"){
-            return parseInt(node.value);
+            return (parseInt(node.value)).toString();
         }
         else if(typ == "double"){
-            return parseFloat(node.value);
+            return (parseFloat(node.value)).toString();
         }
         else if(typ == "boolean"){
-            return node.value == "true" ? true:false;
+            return (node.value == "true" ? true:false).toString();
         }
         else if(typ == "string"){
             return node.value;
@@ -187,38 +198,8 @@ class SchemaValidator{
         assert(this.isClosed == false, "The validator has already been closed.");
         
         this.isClosed = true;
-        console.log(JSON.stringify(this.reports, null , 4));
+        fs.writeFileSync(this.reportFile, "Replace this with template");
     }
 }
-
-
-// async function main() {
-//     let v = new SchemaValidator("./movie_constraints.ttl", "./reportjs.html");
-//     await v.loadShapes();
-//     console.log(await v.addEntity(feed));
-//     v.close();
-// }
-
-// async function main2() {
-//     const schema = require("../serializer/schema_pb");
-//     const schemaDescriptor = require("../serializer/schema_descriptor.json");
-//     const JSONSerializer = require("../serializer/index").JSONLDFeedSerializer;
-
-//     let val = new SchemaValidator("./movie_constraints.ttl", "./report.html");
-//     await val.loadShapes();
-
-//     let ser = new JSONSerializer("./test.json", "ItemList", validator = val);
-//     let mv = new schema.Movie();
-//     mv.setId("myid123");
-//     let nm = new schema.NameProperty();
-//     nm.setText("abcd name");
-//     mv.addName(nm);
-
-//     await ser.addItem(mv, "Movie", schemaDescriptor);
-//     ser.close();
-// }
-
-// main2();
-
 
 module.exports.SchemaValidator = SchemaValidator;
