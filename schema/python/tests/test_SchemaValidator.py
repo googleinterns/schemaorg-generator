@@ -1,6 +1,6 @@
-import validator.validator as validator
+import schemaorgutils.validator as validator
 import json
-import validator.utils.utils as utils
+import utils.utils as utils
 import os
 
 def test_validator():
@@ -37,7 +37,7 @@ def test_validator():
     
     assert expected_conformance == out_conformance, "Expected and returned conformance dont match."
 
-    v.write_report_and_close()
+    v.close()
     os.remove("./tests/files/test_report.html")
    
     expected = []
@@ -105,7 +105,7 @@ def test_validator_datafeed():
         dump = json.load(f) 
 
     v.add_entity(dump)
-    v.write_report_and_close()
+    v.close()
     os.remove("./tests/files/test_report.html")
 
     expected = []
@@ -174,7 +174,7 @@ def test_validator_itemlist():
         dump = json.load(f) 
 
     v.add_entity(dump)
-    v.write_report_and_close()
+    v.close()
     os.remove("./tests/files/test_report.html")
 
     expected = []

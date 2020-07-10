@@ -1,5 +1,5 @@
-import serializer.serializer as serializer
-import serializer.schema_pb2 as schema
+import schemaorgutils.serializer as serializer
+import schema_pb2 as schema
 
 def test_date():
     """Test serialization of date.

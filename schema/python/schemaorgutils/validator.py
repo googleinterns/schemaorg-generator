@@ -15,8 +15,8 @@ import json
 import rdflib
 import uuid
 import os
-import schemaorgutils.validator.utils.constants as constants
-import schemaorgutils.validator.utils.utils as utils
+import schemaorgutils.utils.constants as constants
+import schemaorgutils.utils.utils as utils
 from pyshacl import validate
 from jinja2 import Environment, FileSystemLoader
 
@@ -167,7 +167,7 @@ class SchemaValidator():
         return conforms
 
 
-    def get_aggregates(self):
+    def __get_aggregates(self):
         aggregates = {}
 
         for x in self.reports.keys():
@@ -181,7 +181,7 @@ class SchemaValidator():
 
         return aggregates
     
-    def write_report_and_close(self):
+    def close(self):
         """Generate a report, write it to file and close the validator."""
 
         assert self._is_closed == False, "Validator has already been closed."
@@ -193,7 +193,7 @@ class SchemaValidator():
         env = Environment(loader=file_loader, trim_blocks=True, lstrip_blocks=True)
         env.globals["enumerate"] = enumerate
 
-        aggregates = self.get_aggregates()
+        aggregates = self.__get_aggregates()
         items_list = ', '.join(sorted(self.reports.keys()))
         out_html = env.get_template('report.html').render(results = self.reports, aggregates = aggregates, items=items_list)
 

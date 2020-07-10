@@ -1,5 +1,5 @@
-import serializer.serializer as serializer
-import serializer.schema_pb2 as schema
+import schemaorgutils.serializer as serializer
+import schema_pb2 as schema
 import os
 import json
 
@@ -18,7 +18,7 @@ def test_item_list():
         - Check if '@type' field is set properly for ListItem and ItemList.
     """
     
-    jis = serializer.JSONLDFeedSerializer("./tests/expectedjson/test_jsonld_item_list_out.json", feed_type="ItemList")
+    jis = serializer.JSONLDFeedSerializer("./tests/files/test_jsonld_item_list_out.json", feed_type="ItemList")
 
     for i in range(5):
         mv = schema.Movie()
@@ -31,13 +31,13 @@ def test_item_list():
     
     jis.close()
 
-    with open("./tests/expectedjson/test_jsonld_item_list_out.json") as f:
+    with open("./tests/files/test_jsonld_item_list_out.json") as f:
         output = json.load(f)
     
-    with open("./tests/expectedjson/test_jsonld_item_list.json") as f:
+    with open("./tests/files/test_jsonld_item_list.json") as f:
         expected = json.load(f)
 
-    os.remove("./tests/expectedjson/test_jsonld_item_list_out.json")
+    os.remove("./tests/files/test_jsonld_item_list_out.json")
 
     assert output == expected, "Error in Serialization of ItemList."
 
@@ -55,7 +55,7 @@ def test_data_feed():
         - Check if '@type' field is set properly for DataFeed and DataFeedItem. 
     """
     
-    jis = serializer.JSONLDFeedSerializer("./tests/expectedjson/test_jsonld_data_feed_out.json", feed_type="DataFeed")
+    jis = serializer.JSONLDFeedSerializer("./tests/files/test_jsonld_data_feed_out.json", feed_type="DataFeed")
 
     for i in range(5):
         mv = schema.Movie()
@@ -68,12 +68,12 @@ def test_data_feed():
     
     jis.close()
 
-    with open("./tests/expectedjson/test_jsonld_data_feed_out.json") as f:
+    with open("./tests/files/test_jsonld_data_feed_out.json") as f:
         output = json.load(f)
     
-    with open("./tests/expectedjson/test_jsonld_data_feed.json") as f:
+    with open("./tests/files/test_jsonld_data_feed.json") as f:
         expected = json.load(f)
 
-    os.remove("./tests/expectedjson/test_jsonld_data_feed_out.json")
+    os.remove("./tests/files/test_jsonld_data_feed_out.json")
 
     assert output == expected, "Error in Serialization of DataFeed."

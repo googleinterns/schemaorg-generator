@@ -353,5 +353,5 @@ class JSONLDFeedSerializer(JSONLDSerializer):
         self._outfile.close()
 
         if self._validator:
-            self._validator.write_report_and_close()
+            self._validator.close()
         

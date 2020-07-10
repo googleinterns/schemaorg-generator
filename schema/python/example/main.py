@@ -17,7 +17,7 @@ import MySQLdb
 import MySQLdb.cursors
 import feed_generator
 import schema_pb2
-import schemaorgutils.serializer.serializer as serializer
+import schemaorgutils.serializer as serializer
 
 def main():
     with open('./config.json') as f:
@@ -34,7 +34,6 @@ def main():
     )
 
     cursor = mydb.cursor()
-    cursor.execute("use schemaorg_example")
     sdr = seeder.IMDBSeeder(cursor, config["DBConfig"]["dbname"])
     sdr.seed_db(cursor, dump["movies"], dump["tvseries"], dump["tvepisodes"])
     mydb.commit()
