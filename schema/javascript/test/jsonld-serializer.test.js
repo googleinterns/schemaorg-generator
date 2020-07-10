@@ -1,6 +1,6 @@
 const expect = require('chai').expect;
-const schema = require("../schema_pb");
-const schemaDescriptor = require("../schema_descriptor.json");
+const schema = require("./schema_pb");
+const schemaDescriptor = require("./schema_descriptor.json");
 const JSONLDSerializer = require("../index").JSONLDSerializer;
 
 // Test serialization of date.

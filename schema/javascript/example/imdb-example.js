@@ -870,4 +870,4 @@ class IMDBExample{
 
 }
 
-module.exports.IMDBExample = IMDBExample;
+module.exports = IMDBExample;

@@ -1,6 +1,6 @@
 const expect = require('chai').expect;
-const schema = require("../schema_pb");
-const schemaDescriptor = require("../schema_descriptor.json");
+const schema = require("./schema_pb");
+const schemaDescriptor = require("./schema_descriptor.json");
 const fs = require("fs");
 const JSONLDFeedSerializer = require("../index").JSONLDFeedSerializer;
 
@@ -18,7 +18,7 @@ const JSONLDFeedSerializer = require("../index").JSONLDFeedSerializer;
 //         - Check if '@type' field is set properly for ListItem and ItemList.
 describe("Test Serialization of ItemList", () => {
     it("Testing serialization of ItemList.", () => {
-        let serializer = new JSONLDFeedSerializer("./test/expected_json/test_jsonld_item_list_out.json", "ItemList");
+        let serializer = new JSONLDFeedSerializer("./test/files/serializer_test_item_list_out.json", "ItemList");
 
         for(let i=0; i<5; i++){
             let mv = new schema.Movie();
@@ -42,9 +42,9 @@ describe("Test Serialization of ItemList", () => {
 
         serializer.close();
 
-        const output = require("./expected_json/test_jsonld_item_list_out.json");
-        const expected = require("./expected_json/test_jsonld_item_list.json");
-        fs.unlinkSync("./test/expected_json/test_jsonld_item_list_out.json");
+        const output = require("./files/serializer_test_item_list_out.json");
+        const expected = require("./files/serializer_test_item_list.json");
+        fs.unlinkSync("./test/files/serializer_test_item_list_out.json");
 
         expect(output).to.eql(expected);
     });
@@ -63,7 +63,7 @@ describe("Test Serialization of ItemList", () => {
 //         - Check if '@type' field is set properly for DataFeed and DataFeedItem.
 describe("Test Serialization of DataFeed", () => {
     it("Testing serialization of DataFeed.", () => {
-        let serializer = new JSONLDFeedSerializer("./test/expected_json/test_jsonld_data_feed_out.json", "DataFeed");
+        let serializer = new JSONLDFeedSerializer("./test/files/serializer_test_data_feed_out.json", "DataFeed");
 
         for(let i=0; i<5; i++){
             let mv = new schema.Movie();
@@ -87,9 +87,9 @@ describe("Test Serialization of DataFeed", () => {
 
         serializer.close();
 
-        const output = require("./expected_json/test_jsonld_data_feed_out.json");
-        const expected = require("./expected_json/test_jsonld_data_feed.json");
-        fs.unlinkSync("./test/expected_json/test_jsonld_data_feed_out.json");
+        const output = require("./files/serializer_test_data_feed_out.json");
+        const expected = require("./files/serializer_test_data_feed.json");
+        fs.unlinkSync("./test/files/serializer_test_data_feed_out.json");
 
         expect(output).to.eql(expected);
     });

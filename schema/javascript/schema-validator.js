@@ -202,4 +202,4 @@ class SchemaValidator{
     }
 }
 
-module.exports.SchemaValidator = SchemaValidator;
+module.exports = SchemaValidator;

@@ -24,9 +24,9 @@ const fs = require("fs");
 //         - Check if messages are identified properly.
 describe("Test validator", () => {
     it("Testing validator.", async () => {
-        let validator = new SchemaValidator("./test/files/validator_constraints.ttl", "./test/files/test_report.html");
+        let validator = new SchemaValidator("./test/files/validator_test_constraints.ttl", "./test/files/validator_test_report.html");
         await validator.loadShapes();
-        const dump = require("./files/validator_data_feed.json");
+        const dump = require("./files/validator_test_data_feed.json");
         let expectedConformance = [false, true, true]
         let outConformance = []
 
@@ -74,7 +74,7 @@ describe("Test validator", () => {
             ))
 
         validator.close();
-        fs.unlinkSync("./test/files/test_report.html");
+        fs.unlinkSync("./test/files/validator_test_report.html");
         expect(expected).to.deep.include.members(validator.reports["Movie"]);
         
     });
@@ -102,9 +102,9 @@ describe("Test validator", () => {
 //         - Check if messages are identified properly.
 describe("Test validator itemlist", () => {
     it("Testing validator when itemlist is used.", async () => {
-        let validator = new SchemaValidator("./test/files/validator_constraints.ttl", "./test/files/test_report.html");
+        let validator = new SchemaValidator("./test/files/validator_test_constraints.ttl", "./test/files/validator_test_report.html");
         await validator.loadShapes();
-        const dump = require("./files/validator_item_list.json");
+        const dump = require("./files/validator_test_item_list.json");
         let expectedConformance = false;
         let outConformance = await validator.addEntity(dump);
         
@@ -148,7 +148,7 @@ describe("Test validator itemlist", () => {
             ))
 
         validator.close();
-        fs.unlinkSync("./test/files/test_report.html");
+        fs.unlinkSync("./test/files/validator_test_report.html");
         expect(expected).to.deep.include.members(validator.reports["Movie"]);
         
     });
@@ -176,9 +176,9 @@ describe("Test validator itemlist", () => {
 //         - Check if messages are identified properly.
 describe("Test validator dataFeed", () => {
     it("Testing validator when dataFeed is used.", async () => {
-        let validator = new SchemaValidator("./test/files/validator_constraints.ttl", "./test/files/test_report.html");
+        let validator = new SchemaValidator("./test/files/validator_test_constraints.ttl", "./test/files/validator_test_report.html");
         await validator.loadShapes();
-        const dump = require("./files/validator_data_feed.json");
+        const dump = require("./files/validator_test_data_feed.json");
         let expectedConformance = false;
         let outConformance = await validator.addEntity(dump);
         
@@ -222,7 +222,7 @@ describe("Test validator dataFeed", () => {
             ))
 
         validator.close();
-        fs.unlinkSync("./test/files/test_report.html");
+        fs.unlinkSync("./test/files/validator_test_report.html");
         expect(expected).to.deep.include.members(validator.reports["Movie"]);
         
     });

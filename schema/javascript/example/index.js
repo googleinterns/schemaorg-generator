@@ -17,9 +17,9 @@ const dump = require("./dump.json");
 const config = require("./config.json");
 const schema = require('./schema_pb');
 const schemaDescriptor = require('./schema_descriptor.json');
-const JSONLDFeedSerializer = require('../serializer').JSONLDFeedSerializer;
-const IMDBExample = require('./feed_generator').IMDBExample;
-const IMDBSeeder = require('./seeder').IMDBSeeder;
+const JSONLDFeedSerializer = require('../jsonld-feed-serializer');
+const IMDBExample = require('./imdb-example');
+const IMDBSeeder = require('./imdb-seeder');
 
 /**
  * Creates new IMDBSeeder and seeds db and creates new IMDBExample and generates feed.

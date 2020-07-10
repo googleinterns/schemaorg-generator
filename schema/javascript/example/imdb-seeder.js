@@ -501,4 +501,4 @@ class IMDBSeeder {
     }
 }
 
-module.exports.IMDBSeeder = IMDBSeeder;
+module.exports = IMDBSeeder;
