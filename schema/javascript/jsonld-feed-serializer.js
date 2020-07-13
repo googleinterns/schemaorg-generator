@@ -70,7 +70,7 @@ class JSONLDFeedSerializer extends JSONLDSerializer {
         let entitySerialized = super.protoToDict(entity, entityType, schemaDescriptor);
         
         if(this.validator){
-            let conforms, done=False;
+            let conforms, done=false;
             this.validator.addEntity(entitySerialized).then(v => {
                 conforms = v;
                 done = true;

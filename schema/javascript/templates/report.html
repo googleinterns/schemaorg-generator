@@ -113,7 +113,7 @@ limitations under the License. -->
                                     id: "{{ r.id }}",
                                     message: "{{ r.message }}",
                                     propertyPath: "{{ r.propertyPath }}",
-                                    value: JSON.stringify({{ r.value }}, null, 4),
+                                    value: "{{ r.value }}",
                                     severity: "{{ r.severity }}"
                                     });
         {% endfor %}

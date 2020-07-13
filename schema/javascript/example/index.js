@@ -18,6 +18,7 @@ const config = require("./config.json");
 const schema = require('./schema_pb');
 const schemaDescriptor = require('./schema_descriptor.json');
 const JSONLDFeedSerializer = require('../jsonld-feed-serializer');
+const SchemaValidator = require('../schema-validator');
 const IMDBExample = require('./imdb-example');
 const IMDBSeeder = require('./imdb-seeder');
 
@@ -42,8 +43,11 @@ async function main () {
     await seeder.seedDB(query, dump["movies"], dump["tvseries"], dump["tvepisodes"]);
     console.log("Database seeding completed.");
 
+    let validator = new SchemaValidator("./constraints.ttl", "./report.html");
+    await validator.loadShapes();
+
     let example = new IMDBExample();
-    let serializer = new JSONLDFeedSerializer("./generated-feed.json", feedType="ItemList");
+    let serializer = new JSONLDFeedSerializer("./generated-feed.json", feedType="ItemList", validator=validator);
     console.log("Feed generation started.");
     await example.generateFeed(con, schema, serializer, schemaDescriptor);
     serializer.close();

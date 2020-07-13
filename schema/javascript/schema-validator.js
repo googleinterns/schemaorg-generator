@@ -173,6 +173,8 @@ class SchemaValidator{
      * @return {String|Number|Boolean}      The value of the literal.
      */
     literalToValue(node){
+        if(!node.datatype) return "-";
+        
         let typ = dataTypes[node.datatype.value];
 
         if(typ == "integer"){
