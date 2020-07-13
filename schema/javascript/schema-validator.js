@@ -18,6 +18,7 @@ const assert = require('assert');
 const dataTypes = require("./utils/constants").dataTypes;
 const resultConstants = require("./utils/constants").resultConstants;
 const utils = require("./utils/utils");
+const nunjucks = require("nunjucks");
 
 /**
  * SchemaValidator is used to validate JSONLD objects using SHACL constraints and generate a HTML report.
@@ -191,14 +192,52 @@ class SchemaValidator{
         }
     }
 
+    getAggregates(){
+        let aggregates = {}
+
+        for(let x in this.reports){
+            aggregates[x] = {}
+            aggregates[x]["Info"] = {}
+            aggregates[x]["Warning"] = {}
+            aggregates[x]["Violation"] = {}
+            aggregates[x]["Info"]["entity"] = new Set();
+            aggregates[x]["Warning"]["entity"] = new Set();
+            aggregates[x]["Violation"]["entity"] = new Set();
+            aggregates[x]["Info"]["count"] = 0;
+            aggregates[x]["Warning"]["count"] = 0;
+            aggregates[x]["Violation"]["count"] = 0;
+
+            for(let r of this.reports[x]){
+                aggregates[x][r.severity]["count"] += 1;
+                aggregates[x][r.severity]["entity"].add(r.id);
+            }
+
+            aggregates[x]["Info"]["entity"] = aggregates[x]["Info"]["entity"].size;
+            aggregates[x]["Warning"]["entity"] = aggregates[x]["Warning"]["entity"].size;
+            aggregates[x]["Violation"]["entity"] = aggregates[x]["Violation"]["entity"].size;
+        }
+        return aggregates;
+    }
+
     /**
      *Generate the html report, write it to file and close the validator.
      */
     close(){
         assert(this.isClosed == false, "The validator has already been closed.");
         
+        let aggregates = this.getAggregates();
+        let items = [];
+
+        for(let i in this.reports){
+            items.push(i);
+        }
+
+        items = items.join(", ");
+
+        nunjucks.configure(__dirname + "/templates");
+        let report = nunjucks.render("report.html", {results: this.reports, items: items, aggregates: aggregates});
+        fs.writeFileSync(this.reportFile, report);
         this.isClosed = true;
-        fs.writeFileSync(this.reportFile, "Replace this with template");
     }
 }
 

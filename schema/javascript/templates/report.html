@@ -1,0 +1,154 @@
+<!-- Copyright 2020 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License. -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Schema Validation Report</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://unpkg.com/ag-grid-community/dist/ag-grid-community.min.noStyle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/dist/styles/ag-grid.css">
+    <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/dist/styles/ag-theme-material.css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+  </head>
+  <body style="font-family:'Google Sans' !important;">
+
+    <nav style="background-color: #174EA6;">
+        <div class="nav-wrapper" >
+          <a href="#" class="brand-logo center">Schema Validation Report</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <ul class="collapsible">
+          <li>
+            <div class="collapsible-header" style="background-color: #f8f9fa; color: #202124; font-size: medium;">
+              Entities: {{items}}
+            </div>
+          </li>
+        </ul>
+        <ul class="collapsible">
+            {% for name, r in results %}
+            <li>
+                <div class="collapsible-header" style="padding: 0%;">
+                  <nav>
+                    <div class="nav-wrapper text-darken-4" style=" background-color: #f8f9fa;">
+                      <ul id="nav-mobile" class="left" >
+                        <li><a href="#" style="color: #5f6368; font-size: large;">{{name}}</a></li>
+                      </ul>
+                      <ul id="nav-mobile" class="right" >
+                        <li><a href="#" style="color: #174EA6">Entity Count</a></li>
+                        <li><a href="#" style="color: #0D652D">Info: {{aggregates[name]["Info"]["entity"]}}</a></li>
+                        <li><a href="#" style="color: #E37400">Warning: {{aggregates[name]["Warning"]["entity"]}}</a></li>
+                        <li><a href="#" style="color: #A50E0E">Violation: {{aggregates[name]["Violation"]["entity"]}}</a></li>
+                      </ul>
+                    </div>
+                  </nav>
+                </div>
+
+                <div class="collapsible-body">
+                    <div style="padding: 0%;">
+                      <nav>
+                        <div class="nav-wrapper text-darken-4" style=" background-color: #f8f9fa;">
+                          <ul id="nav-mobile" class="left" >
+                            <li><a href="#" style="color: #5f6368; font-size: medium;">Totals: </a></li>
+                          </ul>
+                          <ul id="nav-mobile" class="right" >
+                            <li><a href="#" style="color: #5f6368">Info: {{aggregates[name]["Info"]["count"]}}</a></li>
+                            <li><a href="#" style="color: #5f6368">Warning: {{aggregates[name]["Warning"]["count"]}}</a></li>
+                            <li><a href="#" style="color: #5f6368">Violation: {{aggregates[name]["Violation"]["count"]}}</a></li>
+                          </ul>
+                        </div>
+                      </nav>
+                    </div>
+                    <br>
+                    <div id="{{name + 'Grid'}}" style="height: 500px;width:100%;" class="ag-theme-material"></div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+          
+    </div>
+
+    <script type="text/javascript" charset="utf-8">
+          document.addEventListener('DOMContentLoaded', function() {
+                var elems = document.querySelectorAll('.collapsible');
+                var instances = M.Collapsible.init(elems);
+            });
+
+
+            $(document).ready(function(){
+                $('.collapsible').collapsible();
+            });
+
+
+      var columnDefs = [
+        {headerName: "Identifier", field: "id", sortable: true, filter: true  },
+        {headerName: "Message", field: "message", sortable: true, filter: true  },
+        {headerName: "Property Path", field: "propertyPath", sortable: true, filter: true  },
+        {headerName: "Value", field: "value", sortable: true, filter: true  },
+        {headerName: "Severity", field: "severity", sortable: true, filter: true  }
+      ];
+  
+    
+      {% for name, val in results %}
+      
+        var {{name + 'RowData'}} = [];
+
+        {% for r in val %}
+            {{name + 'RowData'}}.push({
+                                    id: "{{ r.id }}",
+                                    message: "{{ r.message }}",
+                                    propertyPath: "{{ r.propertyPath }}",
+                                    value: JSON.stringify({{ r.value }}, null, 4),
+                                    severity: "{{ r.severity }}"
+                                    });
+        {% endfor %}
+
+        var {{ name + 'GridOptions'}} = {
+            columnDefs: columnDefs,
+            rowData: {{ name + 'RowData' }},
+            defaultColDef: {
+                editable: true,
+                enableRowGroup: true,
+                enablePivot: true,
+                enableValue: true,
+                sortable: true,
+                resizable: true,
+                filter: true,
+                flex: 1,
+                minWidth: 100,
+            },
+            suppressRowClickSelection: true,
+            groupSelectsChildren: true,
+            debug: true,
+            rowSelection: 'multiple',
+            rowGroupPanelShow: 'always',
+            pivotPanelShow: 'always',
+            enableRangeSelection: true,
+            columnDefs: columnDefs,
+            pagination: true
+        }
+
+        var {{ name + 'GridDiv' }} = document.querySelector("#{{name + 'Grid' }}");
+
+        new agGrid.Grid({{name + 'GridDiv'}}, {{ name + 'GridOptions' }});
+
+      {% endfor %}
+  
+    </script>
+  </body>
+</html>
