@@ -172,12 +172,23 @@ class SchemaValidator():
 
         for x in self.reports.keys():
             aggregates[x] = {}
-            aggregates[x]["Info"] = 0
-            aggregates[x]["Warning"] = 0
-            aggregates[x]["Violation"] = 0
+            aggregates[x]["Info"] = {}
+            aggregates[x]["Warning"] = {}
+            aggregates[x]["Violation"] = {}
+            aggregates[x]["Info"]["entity"] = set()
+            aggregates[x]["Warning"]["entity"] = set()
+            aggregates[x]["Violation"]["entity"] = set()
+            aggregates[x]["Info"]["count"] = 0
+            aggregates[x]["Warning"]["count"] = 0
+            aggregates[x]["Violation"]["count"] = 0
 
             for r in self.reports[x]:
-                aggregates[x][r.severity] += 1
+                aggregates[x][r.severity]["count"] += 1
+                aggregates[x][r.severity]["entity"].add(r.id)
+
+            aggregates[x]["Info"]["entity"] = len(aggregates[x]["Info"]["entity"])
+            aggregates[x]["Warning"]["entity"] = len(aggregates[x]["Warning"]["entity"])
+            aggregates[x]["Violation"]["entity"] = len(aggregates[x]["Violation"]["entity"])
 
         return aggregates
     
