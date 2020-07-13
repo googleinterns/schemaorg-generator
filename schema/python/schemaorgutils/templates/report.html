@@ -47,7 +47,7 @@ limitations under the License. -->
                   <nav>
                     <div class="nav-wrapper text-darken-4" style=" background-color: #f8f9fa;">
                       <ul id="nav-mobile" class="left" >
-                        <li><a href="#" style="color: #5f6368; font-size: large;">Movie</a></li>
+                        <li><a href="#" style="color: #5f6368; font-size: large;">{{name}}</a></li>
                       </ul>
                       <ul id="nav-mobile" class="right" >
                         <li><a href="#" style="color: #174EA6">Entity Count</a></li>
@@ -113,7 +113,7 @@ limitations under the License. -->
                                     id: "{{ r.id }}",
                                     message: "{{ r.message }}",
                                     propertyPath: "{{ r.property_path }}",
-                                    value: JSON.stringify({{ r.value }}, null, 4),
+                                    value: "{{ r.value }}",
                                     severity: "{{ r.severity }}"
                                     });
         {% endfor %}

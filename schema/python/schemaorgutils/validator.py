@@ -138,8 +138,11 @@ class SchemaValidator():
         conforms = True
 
         if not isinstance(value, rdflib.URIRef):
-            message = ""
+            message = "-"
 
+            if not value:
+                value = "-"
+            
             if typ not in self.reports:
                 self.reports[typ] = list()
             

@@ -18,6 +18,7 @@ import MySQLdb.cursors
 import feed_generator
 import schema_pb2
 import schemaorgutils.serializer as serializer
+import schemaorgutils.validator as validator
 
 def main():
     with open('./config.json') as f:
@@ -38,7 +39,9 @@ def main():
     sdr.seed_db(cursor, dump["movies"], dump["tvseries"], dump["tvepisodes"])
     mydb.commit()
 
-    szr = serializer.JSONLDFeedSerializer("./generated-feed.json", feed_type="ItemList")
+    cursor.execute("use {};".format(config["DBConfig"]["dbname"]))
+    val = validator.SchemaValidator("./constraints.ttl", "./report.html")
+    szr = serializer.JSONLDFeedSerializer("./generated-feed.json", feed_type="ItemList", validator=val)
     i = feed_generator.IMDBExample()
     i.generate_feed(cursor, schema_pb2, szr)
     szr.close()

@@ -255,7 +255,9 @@ The example does the following:
 
  - Read data from example/dump.json and seed the Database using IMDBSeeder class. This is done to simulate an environment where data is stored in database and the requirement is to generate JSON-LD feed from database.
  - The IMDBExample class reads from database and generates proto representation for that and uses the JSONLDFeedSerializer to serialize the proto objects into an ItemList.
+ - SchemaValidator is used by JSONLDFeedSerializer to validate feeds and reads constraints from example/constraints.ttl.
  - The final generated feed is stored in example/generated-feed.json.
+ - The validation report is stored in example/report.html
 
  Steps to be followed to run example.
  - Move into example folder. ``` cd example ```
@@ -263,6 +265,8 @@ The example does the following:
  - Populate config.json with credentials.
  - Copy compiled proto schema to the example folder. ``` cp /path/to/schema_pb2.py schema_pb2.py ```
  - Run main.py. ``` python3 main.py ```
+ 
+You can add more constraints to example/constraints.ttl to explore SHACL validations.
 
 ### Run tests
 To run tests follow the instructions below:
