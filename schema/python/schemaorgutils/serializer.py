@@ -14,7 +14,6 @@
 import json
 import datetime
 import isodate
-import os
 from types import ModuleType
 
 
@@ -43,14 +42,14 @@ class JSONLDSerializer():
         assert isinstance(
             schema, ModuleType), "Invalid parameter 'schema' must be <class 'module'>."
 
-        out_obj = self.proto_to_dict(obj, schema)
+        out_obj = self.serialize_proto(obj, schema)
         out_obj['@context'] = 'http://schema.org'
 
         fp = open(outfile, 'w')
         json.dump(out_obj, fp, indent=4, sort_keys=True)
         fp.close()
 
-    def __class_to_dict(self, obj, schema):
+    def __serialize_class(self, obj, schema):
         """Convert a schema class to dictionary.
 
         Args:
@@ -65,19 +64,19 @@ class JSONLDSerializer():
         out_obj['@type'] = obj.DESCRIPTOR.GetOptions().Extensions[schema.type]
         for descriptor in obj.DESCRIPTOR.fields:
             value = getattr(obj, descriptor.name)
-            
-            if descriptor.name == "id":
+
+            if descriptor.name == 'id':
                 if len(value) > 0:
                     out_obj[descriptor.json_name] = value
             elif len(value) > 0:
                 out_obj[descriptor.json_name] = [
-                    self.proto_to_dict(x, schema) for x in value]
+                    self.serialize_proto(x, schema) for x in value]
                 if len(out_obj[descriptor.json_name]) == 1:
                     out_obj[descriptor.json_name] = out_obj[descriptor.json_name][0]
 
         return out_obj
 
-    def __get_property_value(self, obj, schema):
+    def __serialize_property(self, obj, schema):
         """Get value of a schema property.
 
         Args:
@@ -91,9 +90,9 @@ class JSONLDSerializer():
         for descriptor in obj.DESCRIPTOR.fields:
             if obj.HasField(descriptor.name):
                 value = getattr(obj, descriptor.name)
-                return self.proto_to_dict(value, schema)
+                return self.serialize_proto(value, schema)
 
-    def __enum_to_dict(self, obj, schema):
+    def __serialize_enum(self, obj, schema):
         """Convert a schema enumeration to dictionary or string.
 
         Args:
@@ -115,9 +114,9 @@ class JSONLDSerializer():
         else:
             desciptor = obj.DESCRIPTOR.fields[1]
             value = getattr(obj, desciptor.name)
-            return self.proto_to_dict(value, schema)
+            return self.serialize_proto(value, schema)
 
-    def __date_to_string(self, obj):
+    def __serialize_date(self, obj):
         """Convert a protobuf date object to python date object.
 
         Args:
@@ -135,7 +134,7 @@ class JSONLDSerializer():
         date = datetime.date(year=year, month=month, day=day)
         return date.isoformat()
 
-    def __time_to_string(self, obj):
+    def __serialize_time(self, obj):
         """Convert a protobuf time object to python time object.
 
         Args:
@@ -152,15 +151,15 @@ class JSONLDSerializer():
         timezone = getattr(obj, 'timezone')
 
         time = datetime.time(hour=hours, minute=minutes, second=seconds)
-        
+
         if timezone:
             time_string = time.isoformat()
             time_string = time_string + timezone
             time = datetime.time.fromisoformat(time_string)
-        
+
         return time.isoformat()
 
-    def __datetime_to_string(self, obj):
+    def __serialize_datetime(self, obj):
         """Convert a protobuf datetime object to isostring format.
 
         Args:
@@ -186,7 +185,7 @@ class JSONLDSerializer():
             hour=hours,
             minute=minutes,
             second=seconds)
-        
+
         if timezone:
             date_time_string = date_time.isoformat()
             date_time_string = date_time_string + timezone
@@ -194,7 +193,7 @@ class JSONLDSerializer():
 
         return date_time.isoformat()
 
-    def __duration_to_string(self, obj):
+    def __serialize_duration(self, obj):
         """Convert a proto duration object to ISO8601 string.
 
         Args:
@@ -203,12 +202,12 @@ class JSONLDSerializer():
         Returns:
             string: The duration as ISO8601 string.
         """
-        
+
         sec = obj.seconds
         d = datetime.timedelta(seconds=sec)
         return isodate.duration_isoformat(d)
-    
-    def __quantitative_to_string(self, obj):
+
+    def __serialize_quantitative(self, obj):
         """Convert a proto quantitative object to string.
 
         Args:
@@ -217,12 +216,12 @@ class JSONLDSerializer():
         Returns:
             string: The quantitative object as string.
         """
-        
+
         value = obj.value
         unit = obj.unit
-        return str(value) + " " + unit
+        return str(value) + ' ' + unit
 
-    def __check_primtive(self, obj):
+    def __check_primitive(self, obj):
         """Check if an object is python primitive type.
 
         Args:
@@ -237,121 +236,126 @@ class JSONLDSerializer():
                 return True
         return False
 
-    def proto_to_dict(self, obj, schema):
-        """Convert a protobuf schema message to dictionary.
+    def serialize_proto(self, obj, schema):
+        """Convert a protobuf schema object to dictionary recursively.
 
         Args:
             obj (protobuf object): Protobuf object of schema.
             schema (module): Module containing compiled proto schema.
 
         Returns:
-            dict: The schema object as a dictionary/list/string depending on the schema type.
+            dict: The schema object as a dictionary/list/string depending on 
+                  the schema type.
         """
 
-        if self.__check_primtive(obj):
+        if self.__check_primitive(obj):
             return obj
 
         messageType = obj.DESCRIPTOR.GetOptions().Extensions[schema.type]
         if messageType == 'Property':
-            return self.__get_property_value(obj, schema)
-        
+            return self.__serialize_property(obj, schema)
+
         elif messageType == 'EnumWrapper':
-            return self.__enum_to_dict(obj, schema)
-        
+            return self.__serialize_enum(obj, schema)
+
         elif messageType == 'DatatypeDate':
-            return self.__date_to_string(obj)
-        
+            return self.__serialize_date(obj)
+
         elif messageType == 'DatatypeTime':
-            return self.__time_to_string(obj)
-        
+            return self.__serialize_time(obj)
+
         elif messageType == 'DatatypeDateTime':
-            return self.__datetime_to_string(obj)
-        
+            return self.__serialize_datetime(obj)
+
         elif messageType == 'DatatypeQuantitative':
-            return self.__quantitative_to_string(obj)
-        
+            return self.__serialize_quantitative(obj)
+
         elif messageType == 'DatatypeDuration':
-            return self.__duration_to_string(obj)
-        
+            return self.__serialize_duration(obj)
+
         else:
-            return self.__class_to_dict(obj, schema)
+            return self.__serialize_class(obj, schema)
+
 
 class JSONLDFeedSerializer(JSONLDSerializer):
-    """The JSONLDFeedSerializer generates serialized JSONLD output for entities as a ItemList or DataFeed types.
+    """The JSONLDFeedSerializer generates serialized JSONLD output for entities
+    as a ItemList or DataFeed types.
 
     Attributes:
         _validator (set): Set of primitive types in python.
-        _feed_type (string): The type of feed that has to be generated (ItemList/DateFeed).
+        _feed_type (string): The type of feed that has to be generated 
+                             (ItemList/DateFeed).
         _count (int): The count of items added to the feed.
         _outfile (File): The file where the feed has to be generated.
     """
 
-    def __init__(self, outfile, feed_type ="ItemList" , validator = None):
-            
-            JSONLDSerializer.__init__(self)
-            assert isinstance(outfile, str), "Invalid parameter 'outfile' must be 'str'."
-            assert feed_type == "ItemList" or feed_type == "DataFeed", "feed_type must be 'ItemList' or 'DataFeed'."
+    def __init__(self, outfile, feed_type='ItemList', validator=None):
 
-            self._validator = validator
-            self._feed_type = feed_type
-            self._count = 0
-            self._outfile  = open(outfile, "w")
+        JSONLDSerializer.__init__(self)
+        assert isinstance(
+            outfile, str), "Invalid parameter 'outfile' must be 'str'."
+        assert feed_type == 'ItemList' or feed_type == 'DataFeed', "feed_type must be 'ItemList' or 'DataFeed'."
 
-            if self._feed_type == "ItemList":
-                self._outfile.write("{\n")
-                self._outfile.write("\t\"@context\":\"https://schema.org\",\n")
-                self._outfile.write("\t\"@type\":\"ItemList\",\n")
-                self._outfile.write("\t\"itemListElement\":[")
-            elif self._feed_type == "DataFeed":
-                self._outfile.write("{\n")
-                self._outfile.write("\t\"@context\":\"https://schema.org\",\n")
-                self._outfile.write("\t\"@type\":\"DataFeed\",\n")
-                self._outfile.write("\t\"dataFeedElement\":[")
+        self._validator = validator
+        self._feed_type = feed_type
+        self._count = 0
+        self._outfile = open(outfile, 'w')
 
+        if self._feed_type == 'ItemList':
+            self._outfile.write('{\n')
+            self._outfile.write("\t\"@context\":\"https://schema.org\",\n")
+            self._outfile.write("\t\"@type\":\"ItemList\",\n")
+            self._outfile.write("\t\"itemListElement\":[")
+        elif self._feed_type == 'DataFeed':
+            self._outfile.write('{\n')
+            self._outfile.write("\t\"@context\":\"https://schema.org\",\n")
+            self._outfile.write("\t\"@type\":\"DataFeed\",\n")
+            self._outfile.write("\t\"dataFeedElement\":[")
 
     def add_item(self, obj, schema):
-        """Call self.proto_to_dict serialize the item and write to file.
+        """Call self.serialize_proto serialize the item and write to file.
 
         Args:
             obj (protobuf object): Protobuf object that needs to be serialized.
             schema (module): Module containing compiled proto schema.
-        """  
-        
-        assert self._outfile.closed == False, "The serializer had been already closed."
+        """
 
-        obj = self.proto_to_dict(obj, schema)
+        assert self._outfile.closed == False, 'The serializer had been already closed.'
+
+        obj = self.serialize_proto(obj, schema)
 
         if (not self._validator) or (self._validator.add_entity(obj)):
             out_obj = {}
-            
-            if self._feed_type == "ItemList":
-                out_obj["@type"] = "ListItem"
-                out_obj["item"] = obj
-                out_obj["position"] = self._count + 1
-            
-            elif self._feed_type == "DataFeed":
+
+            if self._feed_type == 'ItemList':
+                out_obj['@type'] = 'ListItem'
+                out_obj['item'] = obj
+                out_obj['position'] = self._count + 1
+
+            elif self._feed_type == 'DataFeed':
                 out_obj = obj
-            
+
             out_obj = json.dumps(out_obj, indent=4, sort_keys=True)
             if self._count:
-                out_obj = ",\n" + out_obj
+                out_obj = ',\n' + out_obj
             else:
-                out_obj = "\n" + out_obj
-            
-            out_obj = out_obj.replace("\n", "\n\t\t")
+                out_obj = '\n' + out_obj
+
+            out_obj = out_obj.replace('\n', '\n\t\t')
             self._outfile.write(out_obj)
             self._count = self._count + 1
-        
-    
-    def close(self):
-        """Close the serializer. Close the validator if specified."""  
 
-        assert self._outfile.closed == False, "The serializer had been already closed."
-        
-        self._outfile.write("\n\t]\n")
-        self._outfile.write("}\n")
+    def close(self):
+        """Close the serializer.
+
+        Close the validator if specified.
+        """
+
+        assert self._outfile.closed == False, 'The serializer had been already closed.'
+
+        self._outfile.write('\n\t]\n')
+        self._outfile.write('}\n')
         self._outfile.close()
 
         if self._validator:
             self._validator.close()
-        

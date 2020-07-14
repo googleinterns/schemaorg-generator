@@ -20,36 +20,40 @@ import schema_pb2
 import schemaorgutils.serializer as serializer
 import schemaorgutils.validator as validator
 
+
 def main():
     with open('./config.json') as f:
-      config = json.load(f)
+        config = json.load(f)
 
     with open('./dump.json') as f:
-      dump = json.load(f)
+        dump = json.load(f)
 
     mydb = MySQLdb.connect(
-      host=config["DBConfig"]["host"],
-      user=config["DBConfig"]["user"],
-      password=config["DBConfig"]["password"],
-      cursorclass = MySQLdb.cursors.SSDictCursor  
+        host=config['DBConfig']['host'],
+        user=config['DBConfig']['user'],
+        password=config['DBConfig']['password'],
+        cursorclass=MySQLdb.cursors.SSDictCursor
     )
 
     cursor = mydb.cursor()
-    sdr = seeder.IMDBSeeder(cursor, config["DBConfig"]["dbname"])
-    sdr.seed_db(cursor, dump["movies"], dump["tvseries"], dump["tvepisodes"])
+    new_seeder = seeder.IMDBSeeder(cursor, config['DBConfig']['dbname'])
+    new_seeder.seed_db(cursor, dump['movies'], dump['tvseries'], dump['tvepisodes'])
     mydb.commit()
 
-    cursor.execute("use {};".format(config["DBConfig"]["dbname"]))
-    val = validator.SchemaValidator("./constraints.ttl", "./report.html")
-    szr = serializer.JSONLDFeedSerializer("./generated-feed.json", feed_type="ItemList", validator=val)
-    i = feed_generator.IMDBExample()
-    i.generate_feed(cursor, schema_pb2, szr)
-    szr.close()
+    cursor.execute('use {};'.format(config['DBConfig']['dbname']))
+    new_validator = validator.SchemaValidator('./constraints.ttl', './report.html')
+    new_serializer = serializer.JSONLDFeedSerializer(
+        './generated-feed.json',
+        feed_type='ItemList',
+        validator=new_validator)
+    example = feed_generator.IMDBExample()
 
+    for x in example.get_feed(cursor, schema_pb2):
+        new_serializer.add_item(x, schema_pb2)
+
+    new_serializer.close()
 
 
 if __name__ == '__main__':
     """Seeds the DB with movie data and serializes it into JSON-LD feed."""
     main()
-
-

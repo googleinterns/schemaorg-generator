@@ -1,5 +1,5 @@
 # SchemaOrgUtils Python
-This directory contains an install-able python library that can be used to serialize and validate feed.
+This directory contains a python library that can be used to serialize and validate feed.
 
 ## Usage
 ### Install the package
@@ -44,25 +44,25 @@ To validate an *ItemList* it must of the following format.
 
 ```
 {
-	"@context":"https://schema.org",
-	"@type":"ItemList",
-	"itemListElement":[
-		{
-			"@type": "ListItem",
-			"item": {
-						"First item to be validated"
-					}
-		},
-		{
-			"@type": "ListItem",
-			"item": {
-						"Second item to be validated"
-					}
-		},
-		...
-		...
-		...
-		]
+  "@context":"https://schema.org",
+  "@type":"ItemList",
+  "itemListElement":[
+    {
+      "@type": "ListItem",
+      "item": {
+        "First item to be validated"
+      }
+    },
+    {
+      "@type": "ListItem",
+      "item": {
+        "Second item to be validated"
+      }
+    },
+    ...
+    ...
+    ...
+    ]
 }
 ```
 
@@ -85,19 +85,19 @@ To validate a *DataFeed* it must be of the following format.
 
 ```
 {
-	"@context":"https://schema.org",
-	"@type":"DataFeed",
-	"dataFeedElement":[
-		{
-			"First item to be validated"
-		},
-		{
-			"Second item to be validated"
-		},
-		...
-		...
-		...
-		]
+  "@context":"https://schema.org",
+  "@type":"DataFeed",
+  "dataFeedElement":[
+    {
+      "First item to be validated"
+    },
+    {
+      "Second item to be validated"
+    },
+    ...
+    ...
+    ...
+    ]
 }
 ```
 
@@ -153,22 +153,22 @@ ser.write(movie, "/path/to/outfile.json", schema)
 #### Output
 ```
 {
-    "@context": "http://schema.org",
-        "@type": "Movie",
-        "actor": [
-                {
-                        "@type": "Person",
-                        "name": "Johnny Depp"
-                },
-                {
-                        "@type": "Person",
-                        "name": "Penelope Cruz"
-                },
-                {
-                        "@type": "Person",
-                        "name": "Ian McShane"
-                }
-        ]
+  "@context": "http://schema.org",
+  "@type": "Movie",
+  "actor": [
+     {
+       "@type": "Person",
+       "name": "Johnny Depp"
+     },
+     {
+       "@type": "Person",
+       "name": "Penelope Cruz"
+     },
+     {
+       "@type": "Person",
+       "name": "Ian McShane"
+     }
+   ]
 }
 ```
 
@@ -216,37 +216,37 @@ jis.close()
 #### Output(If every movie passed validation)
 ```
 {
-        "@context":"https://schema.org",
-        "@type":"ItemList",
-        "itemListElement":[
-                {
-                    "@type": "ListItem",
-                    "item": {
-                        "@id": "Id of Movie 1",
-                        "@type": "Movie",
-                        "name": "Movie 1"
-                    },
-                    "position": 1
-                },
-                {
-                    "@type": "ListItem",
-                    "item": {
-                        "@id": "Id of Movie 2",
-                        "@type": "Movie",
-                        "name": "Movie 2"
-                    },
-                    "position": 2
-                },
-                {
-                    "@type": "ListItem",
-                    "item": {
-                        "@id": "Id of Movie 3",
-                        "@type": "Movie",
-                        "name": "Movie 3"
-                    },
-                    "position": 3
-                }
-		 ]
+  "@context":"https://schema.org",
+  "@type":"ItemList",
+  "itemListElement":[
+    {
+      "@type": "ListItem",
+      "item": {
+        "@id": "Id of Movie 1",
+        "@type": "Movie",
+        "name": "Movie 1"
+      },
+      "position": 1
+    },
+    {
+      "@type": "ListItem",
+      "item": {
+        "@id": "Id of Movie 2",
+        "@type": "Movie",
+        "name": "Movie 2"
+      },
+      "position": 2
+    },
+    {
+      "@type": "ListItem",
+      "item": {
+        "@id": "Id of Movie 3",
+        "@type": "Movie",
+        "name": "Movie 3"
+      },
+      "position": 3
+    }
+   ]
  }
 ```
 
