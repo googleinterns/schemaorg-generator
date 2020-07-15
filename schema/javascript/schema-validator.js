@@ -39,6 +39,7 @@ class SchemaValidator{
         this.isClosed = false;
         this.shapesLoaded = false;
         this.reports = {};
+        this.total = {};
     }
 
     /**
@@ -81,6 +82,16 @@ class SchemaValidator{
             }
         }
         else{
+
+            if(!this.reports[typ]){
+                this.reports[typ] = [];
+            }
+
+            if(!this.total[typ]){
+                this.total[typ] = 0;
+            }
+
+            this.total[typ] +=1;
             let id = "";
             this.position = this.position + 1;
             if(entity["@id"]) id = "Id: " + entity["@id"];
@@ -152,9 +163,6 @@ class SchemaValidator{
             return conforms;
         }
         else{
-            if(!this.reports[typ]){
-                this.reports[typ] = [];
-            }
 
             let message = ""
             for(let q of graph.match(resultNode, resultConstants["Message"])){
@@ -237,7 +245,7 @@ class SchemaValidator{
         items = items.join(", ");
 
         nunjucks.configure(__dirname + "/templates");
-        let report = nunjucks.render("report.html", {results: this.reports, items: items, aggregates: aggregates});
+        let report = nunjucks.render("report.html", {results: this.reports, items: items, aggregates: aggregates, total: this.total});
         fs.writeFileSync(this.reportFile, report);
         this.isClosed = true;
     }
