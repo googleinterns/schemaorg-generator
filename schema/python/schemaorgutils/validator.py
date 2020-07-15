@@ -34,6 +34,7 @@ class SchemaValidator():
                             generated.
         _position (int): The total number of entities validated.
         _is_closed (bool): The status of validator.
+        _total (dict(str, int)): Number of total entities for a particular type.
     """
 
     def __init__(self, constraints_file, report_file):
@@ -43,6 +44,7 @@ class SchemaValidator():
         self._report_file = report_file
         self._position = 0
         self._is_closed = False
+        self._total = dict()
 
     def __add_ids(self, entity):
         """Add uids to every entity in the data graph to be validated.
@@ -85,6 +87,13 @@ class SchemaValidator():
             for x in entity['dataFeedElement']:
                 self.add_entity(x)
         else:
+            if typ not in self.reports:
+                self.reports[typ] = list()
+            
+            if typ not in self._total:
+                self._total[typ] = 0
+            
+            self._total[typ] += 1
             self._position = self._position + 1
             id = ''
             if '@id' in entity:
@@ -157,9 +166,6 @@ class SchemaValidator():
             if not value:
                 value = '-'
 
-            if typ not in self.reports:
-                self.reports[typ] = list()
-
             msg = graph.value(
                 result_id, constants.result_constants['Message'], None)
 
@@ -231,7 +237,7 @@ class SchemaValidator():
         aggregates = self.__get_aggregates()
         items_list = ', '.join(sorted(self.reports.keys()))
         out_html = env.get_template('report.html').render(
-            results=self.reports, aggregates=aggregates, items=items_list)
+            results=self.reports, aggregates=aggregates, items=items_list, total=self._total)
 
         f = open(self._report_file, 'w')
         f.write(out_html)
