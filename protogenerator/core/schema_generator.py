@@ -21,6 +21,9 @@ import json
 import collections
 from jinja2 import Environment, FileSystemLoader
 from bs4 import BeautifulSoup
+from typing import Dict, Set, Tuple
+from utils.utils import PropertyToParent as PropertyToParent
+
 
 class SchemaGenerator():
     """The SchemaGenerator is a class that generates protocol buffer code given
@@ -33,7 +36,7 @@ class SchemaGenerator():
         graph (rdflib.Graph): Graph which is result of parsing the schema.
     """
 
-    def __init__(self, src_file_path):
+    def __init__(self, src_file_path: str):
 
         assert isinstance(
             src_file_path, str), "Invalid parameter 'src_file_path' must be 'str'."
@@ -43,17 +46,18 @@ class SchemaGenerator():
             src_file_path,
             format=rdflib.util.guess_format(src_file_path))
 
-    def write_proto(self, dst_path, package_name):
+    def write_proto(self, dst_path: str, package_name: str):
         """Write the protobuf code for the graph to file.
 
         Args:
-            dst_path (str): Path to the output directory where code has to be written.
+            dst_path (str): Path to the output directory where code has to be
+                            written.
             package_name (str): Package name for the proto code.
         """
 
         assert isinstance(
             dst_path, str), "Invalid parameter 'dst_path' must be 'str'."
-        outFile = open(dst_path + "schema.proto", 'w')
+        outFile = open(dst_path + 'schema.proto', 'w')
 
         class_to_prop, prop_to_class, enumerations = self.__get_values()
 
@@ -63,82 +67,101 @@ class SchemaGenerator():
         proto_string += self.__get_datatypes()
         proto_string += self.__class_to_proto(class_to_prop, enumerations)
         proto_string += self.__enum_to_proto(class_to_prop, enumerations)
-        proto_string += self.__prop_to_proto(prop_to_class,set(class_to_prop.keys()))
+        proto_string += self.__prop_to_proto(prop_to_class,
+                                             set(class_to_prop.keys()))
 
         outFile.write(proto_string)
         outFile.close()
 
-        outFile = open(dst_path+"schema_descriptor.json", 'w')
-        json_descriptor = self.__get_json_descriptor(class_to_prop, prop_to_class, enumerations)
+        outFile = open(dst_path + 'schema_descriptor.json', 'w')
+        json_descriptor = self.__get_json_descriptor(
+            class_to_prop, prop_to_class, enumerations)
         json.dump(json_descriptor, outFile, indent=4)
         outFile.close()
 
-    def __class_to_proto(self, class_to_prop, enumerations):
+    def __class_to_proto(self,
+                         class_to_prop: Dict[str, Set[PropertyToParent]],
+                         enumerations: Set[str]):
         """Call ClassDescriptor.to_proto() and get proto code for every schema
         class.
 
         Args:
-            class_to_prop (dict(set): Dictionary containing set of properties for every class.
+            class_to_prop (dict(set): Dictionary containing set of properties
+                                      for every class.
             enumerations (set): Set containing the enumerations in the schema.
 
         Returns:
-            proto_class: The proto code for all the schema classes in class_to_prop as a string.
+            str: The proto code for all the schema classes in class_to_prop as
+                 a string.
         """
         proto_class = '// Definition of classes begin here.\n\n'
 
         for x in sorted(class_to_prop.keys()):
-            if x not in enumerations and x not in constants.schema_datatypes and x not in constants.schema_primitives:
-                
-                comment = ""
+            if ((x not in enumerations) and (x not in constants.schema_datatypes) and (
+                    x not in constants.schema_primitives)):
 
-                for _, _, c in self.graph.triples((utils.add_url(x), constants.schema_constants['Comment'], None)):
+                comment = ''
+
+                for _, _, c in self.graph.triples(
+                        (utils.add_url(x), constants.schema_constants['Comment'], None)):
                     comment += c
 
-                soup = BeautifulSoup(comment, "html.parser")
+                soup = BeautifulSoup(comment, 'html.parser')
                 comment = soup.get_text()
 
-                proto_class += class_descriptor.ClassDescriptor(x, list(class_to_prop[x])).to_proto(comment)
+                proto_class += class_descriptor.ClassDescriptor(
+                    x, list(class_to_prop[x])).to_proto(comment)
                 proto_class += '\n'
 
         return proto_class
 
-    def __prop_to_proto(self, prop_to_class, class_list):
+    def __prop_to_proto(self,
+                        prop_to_class: Dict[str, Set[str]],
+                        class_list: Set[str]):
         """Call PropertyDescriptor.to_proto() and get proto code for every
         schema property.
 
         Args:
-            prop_to_class (dict(set)): Dictionary containing range of class/datatypes for every property.
+            prop_to_class (dict(set)): Dictionary containing range of
+                                       class/datatypes for every property.
             class_list (set): Set of defined classes.
 
         Returns:
-            proto_property: The proto code for all the schema property in prop_to_class as a string.
+            str: The proto code for all the schema property in prop_to_class as
+                 a string.
         """
         proto_property = '// Definition of properties begin here.\n\n'
 
         for x in sorted(prop_to_class.keys()):
             if len(prop_to_class[x]) > 0:
-                comment = ""
-                for _, _, c in self.graph.triples((utils.add_url(x), constants.schema_constants['Comment'], None)):
+                comment = ''
+                for _, _, c in self.graph.triples(
+                        (utils.add_url(x), constants.schema_constants['Comment'], None)):
                     comment += c
 
-                soup = BeautifulSoup(comment, "html.parser")
+                soup = BeautifulSoup(comment, 'html.parser')
                 comment = soup.get_text()
 
-                proto_property += property_descriptor.PropertyDescriptor(x, list(prop_to_class[x]),list(class_list)).to_proto(comment)
+                proto_property += property_descriptor.PropertyDescriptor(
+                    x, list(prop_to_class[x]), list(class_list)).to_proto(comment)
                 proto_property += '\n'
 
         return proto_property
 
-    def __enum_to_proto(self, class_to_prop, enumerations):
+    def __enum_to_proto(self,
+                        class_to_prop: Dict[str, Set[PropertyToParent]],
+                        enumerations: Set[str]):
         """Call EnumDescriptor.to_proto() and get proto code for every schema
         enumeration.
 
         Args:
-            class_to_prop (dict(set): Dictionary containing set of properties for every class.
+            class_to_prop (dict(set): Dictionary containing set of properties
+                                      for every class.
             enumerations (set): Set containing the enumerations in the schema.
 
         Returns:
-            proto_enum: The proto code for all the schema enumerations in enumerations as a string.
+            str: The proto code for all the schema enumerations in enumerations
+                 as a string.
         """
 
         proto_enum = '// Definition of enumerations begin here.\n\n'
@@ -150,28 +173,32 @@ class SchemaGenerator():
                     (None, constants.schema_constants['Type'], utils.add_url(x))):
                 enum_values.add(utils.strip_url(ev))
 
-            comment = ""
-            for _, _, c in self.graph.triples((utils.add_url(x), constants.schema_constants['Comment'], None)):
+            comment = ''
+            for _, _, c in self.graph.triples(
+                    (utils.add_url(x), constants.schema_constants['Comment'], None)):
                 comment += c
-            
-            soup = BeautifulSoup(comment, "html.parser")
+
+            soup = BeautifulSoup(comment, 'html.parser')
             comment = soup.get_text()
 
-            proto_enum += enum_descriptor.EnumDescriptor(x,list(
+            proto_enum += enum_descriptor.EnumDescriptor(x, list(
                 class_to_prop[x]), list(enum_values)).to_proto(comment)
             proto_enum += '\n'
 
         return proto_enum
 
-    def __get_values(self):
+    def __get_values(
+            self) -> Tuple[Dict[str, Set[PropertyToParent]], Dict[str, Set[str]], Set[str]]:
         """Call utils.toplogical_sort(), compress the inheritance heirarchy and
         return mappings between schema classes, schema properties and schema
         enumerations.
 
         Returns:
-            class_to_prop (dict(set): Dictionary containing set of properties for every class.
-            prop_to_class (dict(set): Dictionary containing range of class/datatypes for every property.
-            enumerations (set): Set containing the enumerations in the schema.
+            dict[str, set[PropertyToParent]]: Dictionary containing set of
+                                              properties for every class.
+            dict[str, set[str]]: Dictionary containing range of
+                                 class/datatypes for every property.
+            set[str]: Set containing the enumerations in the schema.
         """
 
         class_to_prop = dict()
@@ -183,7 +210,9 @@ class SchemaGenerator():
 
             for property_name, _, _ in self.graph.triples(
                     (None, constants.schema_constants['domainIncludes'], class_name)):
-                prop = utils.PropertyToParent(utils.strip_url(property_name), utils.strip_url(class_name))
+                prop = utils.PropertyToParent(
+                    utils.strip_url(property_name),
+                    utils.strip_url(class_name))
                 class_to_prop[utils.strip_url(class_name)].add(prop)
 
         for class_name, _, _ in self.graph.triples(
@@ -206,7 +235,8 @@ class SchemaGenerator():
             for _, _, parent_class in self.graph.triples(
                     (class_name, constants.schema_constants['subClassOf'], None)):
                 if utils.strip_url(parent_class) in class_to_prop:
-                    class_to_prop[utils.strip_url(class_name)] = class_to_prop[utils.strip_url(class_name)] | class_to_prop[utils.strip_url(parent_class)]
+                    class_to_prop[utils.strip_url(class_name)] = class_to_prop[utils.strip_url(
+                        class_name)] | class_to_prop[utils.strip_url(parent_class)]
 
         enumerations = set()
 
@@ -232,9 +262,11 @@ class SchemaGenerator():
 
             for _, _, class_name in self.graph.triples(
                     (property_name, constants.schema_constants['rangeIncludes'], None)):
-                prop_to_class[utils.strip_url(property_name)].add(utils.strip_url(class_name))
+                prop_to_class[utils.strip_url(property_name)].add(
+                    utils.strip_url(class_name))
                 if class_name in class_to_children:
-                    prop_to_class[utils.strip_url(property_name)] = prop_to_class[utils.strip_url(property_name)] | set(map(utils.strip_url, class_to_children[class_name]))
+                    prop_to_class[utils.strip_url(property_name)] = prop_to_class[utils.strip_url(
+                        property_name)] | set(map(utils.strip_url, class_to_children[class_name]))
 
                 if class_name == constants.schema_constants['Number']:
                     prop_to_class[utils.strip_url(property_name)].add(
@@ -248,27 +280,28 @@ class SchemaGenerator():
 
         return class_to_prop, prop_to_class, enumerations
 
-    def __get_header(self, package_name):
+    def __get_header(self, package_name: str) -> str:
         """Return the header for proto code file.
 
         Args:
             package_name (str): Package name for the proto code.
 
         Returns:
-            proto_header: The proto code of header as a string.
+            str: The proto code of header as a string.
         """
 
         file_loader = FileSystemLoader('./core/templates')
         env = Environment(loader=file_loader)
 
-        proto_header = env.get_template('header.txt').render(package_name=package_name)
+        proto_header = env.get_template(
+            'header.txt').render(package_name=package_name)
         return proto_header
 
-    def __get_options(self):
+    def __get_options(self) -> str:
         """Return the options for JSONLD serializer.
 
         Returns:
-            proto_options: The proto code of options for JSONLD serializer as a string.
+            str: The proto code of options for JSONLD serializer as a string.
         """
         file_loader = FileSystemLoader('./core/templates')
         env = Environment(loader=file_loader)
@@ -276,11 +309,12 @@ class SchemaGenerator():
         proto_options = env.get_template('options.txt').render()
         return proto_options
 
-    def __get_datatypes(self):
+    def __get_datatypes(self) -> str:
         """Return the datatypes in accordance with schemaorg.
 
         Returns:
-            proto_datatypes: The proto code of datatypes in accordance with schemaorg as a string.
+            str: The proto code of datatypes in accordance with schemaorg as a
+                 string.
         """
 
         file_loader = FileSystemLoader('./core/templates')
@@ -289,39 +323,47 @@ class SchemaGenerator():
         proto_datatypes = env.get_template('datatypes.txt').render()
         return proto_datatypes
 
-    def __get_json_descriptor(self, class_to_prop, prop_to_class, enumerations):
+    def __get_json_descriptor(self,
+                              class_to_prop: Dict[str, Set[PropertyToParent]],
+                              prop_to_class: Dict[str, Set[str]],
+                              enumerations: Set[str]) -> Dict:
         """Return a json descriptor for the given schema.
 
         Args:
-            class_to_prop (dict(set): Dictionary containing set of properties for every class.
-            prop_to_class (dict(set): Dictionary containing range of class/datatypes for every property.
-            enumerations (set): Set containing the enumerations in the schema.
+            dict[str, set[PropertyToParent]]: Dictionary containing set of
+                                              properties for every class.
+            dict[str, set[str]]: Dictionary containing range of class/datatypes
+                                 for every property.
+            set[str]: Set containing the enumerations in the schema.
 
         Returns:
-            json_descriptor: The json descriptor for the schema.
+            dict: The json descriptor for the schema.
         """
 
         defined_classes = set(class_to_prop.keys())
         total_classes = set()
 
-        for _,_,property_name in self.graph.triples((None, utils.constants.schema_constants["rangeIncludes"], None)):
+        for _, _, property_name in self.graph.triples(
+                (None, utils.constants.schema_constants['rangeIncludes'], None)):
             total_classes.add(utils.strip_url(property_name))
 
         undefined_classes = total_classes.difference(defined_classes)
-        undefined_classes = undefined_classes | set(utils.constants.schema_primitives.keys())
+        undefined_classes = undefined_classes | set(
+            utils.constants.schema_primitives.keys())
 
         message_descriptor = {}
 
         for x in sorted(class_to_prop.keys()):
-            if x not in enumerations and x not in constants.schema_datatypes and x not in constants.schema_primitives:
+            if ((x not in enumerations) and (x not in constants.schema_datatypes) and (
+                    x not in constants.schema_primitives)):
                 o = {}
-                o["@type"] = utils.strip_url(x)
+                o['@type'] = utils.strip_url(x)
 
                 prop_from_self = list()
                 prop_inherited = dict()
 
-                o["fields"] = list()
-                o["fields"].append("@id")
+                o['fields'] = list()
+                o['fields'].append('@id')
 
                 for p in class_to_prop[x]:
                     if p.parent == x:
@@ -329,49 +371,49 @@ class SchemaGenerator():
                     else:
                         if p.parent not in prop_inherited:
                             prop_inherited[p.parent] = list()
-                        
+
                         prop_inherited[p.parent].append(p.name)
 
                 prop_from_self = sorted(prop_from_self)
-                prop_inherited = collections.OrderedDict(sorted(prop_inherited.items()))
+                prop_inherited = collections.OrderedDict(
+                    sorted(prop_inherited.items()))
 
                 for p in prop_from_self:
-                    o["fields"].append(p)
+                    o['fields'].append(p)
 
                 for ky in prop_inherited:
                     props = sorted(prop_inherited[ky])
-                    o["fields"].extend(props)
+                    o['fields'].extend(props)
 
                 message_descriptor[x] = o
 
-        
         for x in sorted(prop_to_class.keys()):
-            if len(prop_to_class[x])>0:
+            if len(prop_to_class[x]) > 0:
                 o = {}
-                o["@type"] = "Property"
-                o["fields"] = sorted(list(prop_to_class[x]))
+                o['@type'] = 'Property'
+                o['fields'] = sorted(list(prop_to_class[x]))
                 message_descriptor[x] = o
 
-  
         for x in sorted(enumerations):
             enum_values = set()
 
-            for ev, _, _ in self.graph.triples((None, constants.schema_constants['Type'], utils.add_url(x))):
+            for ev, _, _ in self.graph.triples(
+                    (None, constants.schema_constants['Type'], utils.add_url(x))):
                 enum_values.add(ev)
-            
+
             o = {}
-            o["@type"] = "EnumWrapper"
-            o["values"] = sorted(list(enum_values))
-            o["values"].insert(0, "Unknown")
-            o["fields"] = ["id", x + "Class"]
+            o['@type'] = 'EnumWrapper'
+            o['values'] = sorted(list(enum_values))
+            o['values'].insert(0, 'Unknown')
+            o['fields'] = ['id', x + 'Class']
 
             o2 = {}
-            o2["@type"] = x
+            o2['@type'] = x
             prop_from_self = list()
             prop_inherited = dict()
 
-            o2["fields"] = list()
-            o2["fields"].append("@id")
+            o2['fields'] = list()
+            o2['fields'].append('@id')
 
             for p in class_to_prop[x]:
                 if p.parent == x:
@@ -379,50 +421,46 @@ class SchemaGenerator():
                 else:
                     if p.parent not in prop_inherited:
                         prop_inherited[p.parent] = list()
-                    
+
                     prop_inherited[p.parent].append(p.name)
 
             prop_from_self = sorted(prop_from_self)
-            prop_inherited = collections.OrderedDict(sorted(prop_inherited.items()))
+            prop_inherited = collections.OrderedDict(
+                sorted(prop_inherited.items()))
 
             for p in prop_from_self:
-                o2["fields"].append(p)
+                o2['fields'].append(p)
 
             for ky in prop_inherited:
                 props = sorted(prop_inherited[ky])
-                o2["fields"].extend(props)
+                o2['fields'].extend(props)
 
-            
             message_descriptor[x] = o
-            message_descriptor[x + "Class"] = o2
+            message_descriptor[x + 'Class'] = o2
 
-        
-        message_descriptor["Date"] = {}
-        message_descriptor["Date"]["@type"] = "DatatypeDate"
+        message_descriptor['Date'] = {}
+        message_descriptor['Date']['@type'] = 'DatatypeDate'
 
-        message_descriptor["DateTime"] = {}
-        message_descriptor["DateTime"]["@type"] = "DatatypeDateTime"
+        message_descriptor['DateTime'] = {}
+        message_descriptor['DateTime']['@type'] = 'DatatypeDateTime'
 
-        message_descriptor["Time"] = {}
-        message_descriptor["Time"]["@type"] = "DatatypeTime"
+        message_descriptor['Time'] = {}
+        message_descriptor['Time']['@type'] = 'DatatypeTime'
 
-        message_descriptor["Duration"] = {}
-        message_descriptor["Duration"]["@type"] = "DatatypeDuration"
+        message_descriptor['Duration'] = {}
+        message_descriptor['Duration']['@type'] = 'DatatypeDuration'
 
-        message_descriptor["Distance"] = {}
-        message_descriptor["Distance"]["@type"] = "DatatypeQuantitative"
+        message_descriptor['Distance'] = {}
+        message_descriptor['Distance']['@type'] = 'DatatypeQuantitative'
 
-        message_descriptor["Energy"] = {}
-        message_descriptor["Energy"]["@type"] = "DatatypeQuantitative"
+        message_descriptor['Energy'] = {}
+        message_descriptor['Energy']['@type'] = 'DatatypeQuantitative'
 
-        message_descriptor["Mass"] = {}
-        message_descriptor["Mass"]["@type"] = "DatatypeQuantitative"
-
+        message_descriptor['Mass'] = {}
+        message_descriptor['Mass']['@type'] = 'DatatypeQuantitative'
 
         json_descriptor = {}
-        json_descriptor["messages"] = message_descriptor
-        json_descriptor["primitives"] = list(sorted(undefined_classes))
-
-
+        json_descriptor['messages'] = message_descriptor
+        json_descriptor['primitives'] = list(sorted(undefined_classes))
 
         return json_descriptor

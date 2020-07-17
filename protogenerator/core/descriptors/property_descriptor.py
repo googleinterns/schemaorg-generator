@@ -14,16 +14,20 @@
 import utils.utils as utils
 import utils.constants as constants
 from jinja2 import Environment, FileSystemLoader
+from typing import List
+from utils.utils import PropertyToParent as PropertyToParent
 
 
-def get_import_statement(x):
-    """Return import statement for a particular class/datatype is it needs to be imported.
+def get_import_statement(x: str) -> str:
+    """Return import statement for a particular class/datatype is it needs to
+    be imported.
 
     Args:
-        x (string): Name of message which has to be imported/used.
+        x (str): Name of message which has to be imported/used.
 
     Returns:
-        string: Import statement if the message type need to be imported else empty string.
+        str: Import statement if the message type need to be imported else
+             empty string.
     """
 
     if x in constants.schema_primitives:
@@ -38,20 +42,24 @@ def get_import_statement(x):
 
 
 class PropertyDescriptor:
-    """The PropertyDescriptor generates protocol buffer code for schema property.
+    """The PropertyDescriptor generates protocol buffer code for schema
+    property.
 
     Args:
         name (str): Name of the schema property.
-        field_types (list[str]): The schema classes/datatypes that are included in range of schema property.
-        class_list (list(str)): List of defined classes.
+        field_types (list[str]): The schema classes/datatypes that are included
+                                 in range of schema property.
+        class_list (list[str]): List of defined classes.
 
     Attributes:
         name (str): Name of the schema property.
-        field_types (list[str]): The schema classes/datatypes that are included in range of schema property.
-        class_list (list(str)): List of defined classes.
+        field_types (list[str]): The schema classes/datatypes that are included
+                                 in range of schema property.
+        class_list (list[str]): List of defined classes.
     """
 
-    def __init__(self, name, field_types, class_list):
+    def __init__(self, name: str,
+                 field_types: List[str], class_list: List[str]):
 
         assert isinstance(name, str), "Invalid parameter 'name' must be 'str'."
         assert isinstance(
@@ -71,29 +79,32 @@ class PropertyDescriptor:
         self.field_types = field_types
         self.class_list = class_list
 
-    def to_proto(self, comment):
+    def to_proto(self, comment: str) -> str:
         """Return proto code for the schema property.
 
         Args:
-            comment (string): The comment to be added to the code.
+            comment (str): The comment to be added to the code.
 
         Returns:
-            proto_string: The proto code for the schema property as a string.
+            str: The proto code for the schema property as a string.
         """
 
         assert isinstance(
             comment, str), "Invalid parameter 'comment' must be 'str'."
-        
-        file_loader = FileSystemLoader('./core/templates')
-        env = Environment(loader=file_loader, trim_blocks=True, lstrip_blocks=True)
-        env.globals["get_class_type"] = utils.get_class_type
-        env.globals["to_snake_case"] = utils.to_snake_case
 
-        comment = "// " + comment.replace("\n", "\n// ")
+        file_loader = FileSystemLoader('./core/templates')
+        env = Environment(
+            loader=file_loader,
+            trim_blocks=True,
+            lstrip_blocks=True)
+        env.globals['get_class_type'] = utils.get_class_type
+        env.globals['to_snake_case'] = utils.to_snake_case
+
+        comment = '// ' + comment.replace('\n', '\n// ')
         proto_string = env.get_template('property.txt').render(
-                                                            name = utils.get_property_name(self.name), 
-                                                            field_types = sorted(self.field_types), 
-                                                            class_list = self.class_list, 
-                                                            comment=comment)
+            name=utils.get_property_name(self.name),
+            field_types=sorted(self.field_types),
+            class_list=self.class_list,
+            comment=comment)
 
         return proto_string

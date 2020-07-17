@@ -48,8 +48,8 @@ def main():
     pkg = args.PKG
     ver = args.VER
 
-    if dest[-1] != "/":
-        dest = dest + "/"
+    if dest[-1] != '/':
+        dest = dest + '/'
 
     if isinstance(src, str):
         schema = schema_generator.SchemaGenerator(src)
@@ -57,7 +57,7 @@ def main():
     else:
         url = 'https://raw.githubusercontent.com/schemaorg/schemaorg/master/data/releases/' + \
             ver + '/schema.nt'
-        name = './temp-' + str(int(time.time())) + ".nt"
+        name = './temp-' + str(int(time.time())) + '.nt'
         try:
             urllib.request.urlretrieve(url, name)
         except urllib.error.HTTPError:

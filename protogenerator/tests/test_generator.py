@@ -17,37 +17,42 @@ import utils.utils as utils
 import core.schema_generator as schema_generator
 import os
 
+
 def test_generator():
     """Test the schema generator.
 
     Procedure:
         - Create root class, child classes and grandchildren to the root class.
         - Create enumeration and add values to it.
-        - Create properties and attach them to each of the classes and enumerations.
+        - Create properties and attach them to each of the classes and 
+          enumerations.
         - Create comments.
         - Add the range of each property.
-    
+
     Verification:
         - Check if classes and enumerations have all their properties.
         - Check if child classes inherit properties of parent classes.
-        - Check if the enumerations generate two messages as defined in the specification.
+        - Check if the enumerations generate two messages as defined in the 
+          specification.
         - Check if the enumerations inherit properties of 'enumeration' class.
         - Check if the enumerations have all values attached to it.
         - Check if properties point to classes in range and their child classes.
         - Check if comments are generated properly.
     """
-  
-    gen = schema_generator.SchemaGenerator("./tests/files/test_graph.nt")
-    gen.write_proto("./tests/files/", "schemaorg")
 
-    expected_proto = open("./tests/files/test_schema.proto","r").read()
-    out_proto = open("./tests/files/schema.proto","r").read()
+    gen = schema_generator.SchemaGenerator('./tests/files/test_graph.nt')
+    gen.write_proto('./tests/files/', 'schemaorg')
 
-    expected_descriptor = open("./tests/files/test_schema_descriptor.json","r").read()
-    out_descriptor = open("./tests/files/schema_descriptor.json","r").read()
+    expected_proto = open('./tests/files/test_schema.proto', 'r').read()
+    out_proto = open('./tests/files/schema.proto', 'r').read()
 
-    os.remove("./tests/files/schema.proto")
-    os.remove("./tests/files/schema_descriptor.json")
+    expected_descriptor = open(
+        './tests/files/test_schema_descriptor.json',
+        'r').read()
+    out_descriptor = open('./tests/files/schema_descriptor.json', 'r').read()
 
-    assert out_proto == expected_proto, "Error in schema proto."
-    assert out_descriptor == expected_descriptor, "Error in schema descriptor."
+    os.remove('./tests/files/schema.proto')
+    os.remove('./tests/files/schema_descriptor.json')
+
+    assert out_proto == expected_proto, 'Error in schema proto.'
+    assert out_descriptor == expected_descriptor, 'Error in schema descriptor.'

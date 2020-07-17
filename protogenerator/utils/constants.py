@@ -37,9 +37,17 @@ schema_primitives = {
     'Integer': 'int64',
     'Float': 'double',
     'URL': 'string',
-    }
+}
 
-schema_datatypes = {'Date', 'DateTime', 'Time', 'DataType', 'Duration', 'Distance', 'Energy', 'Mass'}
+schema_datatypes = {
+    'Date',
+    'DateTime',
+    'Time',
+    'DataType',
+    'Duration',
+    'Distance',
+    'Energy',
+    'Mass'}
 
 schema_constants = {
     'Type': rdflib.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
