@@ -14,7 +14,9 @@
 import json
 import datetime
 import isodate
+import schemaorgutils.validator as validator
 from types import ModuleType
+from typing import Any, Union
 
 
 class JSONLDSerializer():
@@ -26,9 +28,9 @@ class JSONLDSerializer():
     """
 
     def __init__(self):
-        self._primitive_types = {float, int, str, bool, str}
+        self._primitive_types = {float, int, str, bool}
 
-    def write(self, obj, outfile, schema):
+    def write(self, obj: Any, outfile: str, schema: ModuleType):
         """Write JSONLD output to outfile.
 
         Args:
@@ -49,7 +51,7 @@ class JSONLDSerializer():
         json.dump(out_obj, fp, indent=4, sort_keys=True)
         fp.close()
 
-    def __serialize_class(self, obj, schema):
+    def __serialize_class(self, obj: Any, schema: ModuleType) -> dict:
         """Convert a schema class to dictionary.
 
         Args:
@@ -57,7 +59,7 @@ class JSONLDSerializer():
             schema (module): Module containing compiled proto schema.
 
         Returns:
-            out_obj: The schema class as a dictionary.
+            dict: The schema class as a dictionary.
         """
 
         out_obj = {}
@@ -76,7 +78,7 @@ class JSONLDSerializer():
 
         return out_obj
 
-    def __serialize_property(self, obj, schema):
+    def __serialize_property(self, obj: Any, schema: ModuleType) -> Any:
         """Get value of a schema property.
 
         Args:
@@ -84,7 +86,7 @@ class JSONLDSerializer():
             schema (module): Module containing compiled proto schema.
 
         Returns:
-            value: The value of schema property.
+            any: The value of schema property.
         """
 
         for descriptor in obj.DESCRIPTOR.fields:
@@ -92,7 +94,8 @@ class JSONLDSerializer():
                 value = getattr(obj, descriptor.name)
                 return self.serialize_proto(value, schema)
 
-    def __serialize_enum(self, obj, schema):
+    def __serialize_enum(
+            self, obj: Any, schema: ModuleType) -> Union[str, dict]:
         """Convert a schema enumeration to dictionary or string.
 
         Args:
@@ -100,7 +103,7 @@ class JSONLDSerializer():
             schema (module): Module containing compiled proto schema.
 
         Returns:
-            value: The schema class as a dictionary or string.
+            union[str, dict]: The schema class as a dictionary or string.
         """
 
         desciptor = obj.DESCRIPTOR.fields[0]
@@ -116,7 +119,7 @@ class JSONLDSerializer():
             value = getattr(obj, desciptor.name)
             return self.serialize_proto(value, schema)
 
-    def __serialize_date(self, obj):
+    def __serialize_date(self, obj: Any) -> str:
         """Convert a protobuf date object to python date object.
 
         Args:
@@ -124,7 +127,7 @@ class JSONLDSerializer():
             schema (module): Module containing compiled proto schema.
 
         Returns:
-            date: Python date object of protobuf date.
+            str: Python date object of protobuf date.
         """
 
         year = getattr(obj, 'year')
@@ -134,7 +137,7 @@ class JSONLDSerializer():
         date = datetime.date(year=year, month=month, day=day)
         return date.isoformat()
 
-    def __serialize_time(self, obj):
+    def __serialize_time(self, obj: Any) -> str:
         """Convert a protobuf time object to python time object.
 
         Args:
@@ -142,7 +145,7 @@ class JSONLDSerializer():
             schema (module): Module containing compiled proto schema.
 
         Returns:
-            date: Python time object of protobuf time.
+            str: Python time object of protobuf time.
         """
 
         hours = getattr(obj, 'hours')
@@ -159,7 +162,7 @@ class JSONLDSerializer():
 
         return time.isoformat()
 
-    def __serialize_datetime(self, obj):
+    def __serialize_datetime(self, obj: Any) -> str:
         """Convert a protobuf datetime object to isostring format.
 
         Args:
@@ -167,7 +170,7 @@ class JSONLDSerializer():
             schema (module): Module containing compiled proto schema.
 
         Returns:
-            date_time: Isostring format of proto datetime.
+            str: Isostring format of proto datetime.
         """
 
         year = getattr(getattr(obj, 'date'), 'year')
@@ -193,35 +196,35 @@ class JSONLDSerializer():
 
         return date_time.isoformat()
 
-    def __serialize_duration(self, obj):
+    def __serialize_duration(self, obj: Any) -> str:
         """Convert a proto duration object to ISO8601 string.
 
         Args:
             obj (protobuf object): Protobuf object of duration.
 
         Returns:
-            string: The duration as ISO8601 string.
+            str: The duration as ISO8601 string.
         """
 
         sec = obj.seconds
         d = datetime.timedelta(seconds=sec)
         return isodate.duration_isoformat(d)
 
-    def __serialize_quantitative(self, obj):
+    def __serialize_quantitative(self, obj: Any) -> str:
         """Convert a proto quantitative object to string.
 
         Args:
             obj (protobuf object): Protobuf object of quantitative object.
 
         Returns:
-            string: The quantitative object as string.
+            str: The quantitative object as string.
         """
 
         value = obj.value
         unit = obj.unit
         return str(value) + ' ' + unit
 
-    def __check_primitive(self, obj):
+    def __check_primitive(self, obj: Any) -> bool:
         """Check if an object is python primitive type.
 
         Args:
@@ -236,7 +239,7 @@ class JSONLDSerializer():
                 return True
         return False
 
-    def serialize_proto(self, obj, schema):
+    def serialize_proto(self, obj: Any, schema: ModuleType) -> Any:
         """Convert a protobuf schema object to dictionary recursively.
 
         Args:
@@ -244,7 +247,7 @@ class JSONLDSerializer():
             schema (module): Module containing compiled proto schema.
 
         Returns:
-            dict: The schema object as a dictionary/list/string depending on 
+            any: The schema object as a dictionary/list/string depending on
                   the schema type.
         """
 
@@ -281,15 +284,22 @@ class JSONLDFeedSerializer(JSONLDSerializer):
     """The JSONLDFeedSerializer generates serialized JSONLD output for entities
     as a ItemList or DataFeed types.
 
+    Args:
+        outfile (str): Path to file where the feed has to be generated.
+        feed_type (str): Type of feed that has to be generated
+                             (ItemList/DateFeed).
+        validator (SchemaValidator): Validator to check conformance before serializing.
+
     Attributes:
-        _validator (set): Set of primitive types in python.
-        _feed_type (string): The type of feed that has to be generated 
+        _validator (SchemaValidator): Validator check conformance before serializing.
+        _feed_type (str): The type of feed that has to be generated
                              (ItemList/DateFeed).
         _count (int): The count of items added to the feed.
         _outfile (File): The file where the feed has to be generated.
     """
 
-    def __init__(self, outfile, feed_type='ItemList', validator=None):
+    def __init__(self, outfile: str, feed_type: str = 'ItemList',
+                 validator: validator.SchemaValidator = None):
 
         JSONLDSerializer.__init__(self)
         assert isinstance(
@@ -312,7 +322,7 @@ class JSONLDFeedSerializer(JSONLDSerializer):
             self._outfile.write("\t\"@type\":\"DataFeed\",\n")
             self._outfile.write("\t\"dataFeedElement\":[")
 
-    def add_item(self, obj, schema):
+    def add_item(self, obj: Any, schema: ModuleType):
         """Call self.serialize_proto serialize the item and write to file.
 
         Args:

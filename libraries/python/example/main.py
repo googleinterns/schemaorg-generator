@@ -37,11 +37,16 @@ def main():
 
     cursor = mydb.cursor()
     new_seeder = seeder.IMDBSeeder(cursor, config['DBConfig']['dbname'])
-    new_seeder.seed_db(cursor, dump['movies'], dump['tvseries'], dump['tvepisodes'])
+    new_seeder.seed_db(
+        cursor,
+        dump['movies'],
+        dump['tvseries'],
+        dump['tvepisodes'])
     mydb.commit()
 
     cursor.execute('use {};'.format(config['DBConfig']['dbname']))
-    new_validator = validator.SchemaValidator('./constraints.ttl', './report.html')
+    new_validator = validator.SchemaValidator(
+        './constraints.ttl', './report.html')
     new_serializer = serializer.JSONLDFeedSerializer(
         './generated-feed.json',
         feed_type='ItemList',

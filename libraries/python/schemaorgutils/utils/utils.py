@@ -11,27 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-def strip_shacl_prefix(url):
+def strip_shacl_prefix(url: str) -> str:
     """Strip the shacl prefix and return value of the url.
 
     Args:
-        url (string): String with shacl prefix.
+        url (str): String with shacl prefix.
 
     Returns:
-        string: String after removing shacl prefix..
+        str: String after removing shacl prefix..
     """
     term = str(url)
     return term[27:]
 
 
-def strip_url(url):
+def strip_url(url: str) -> str:
     """Strip the url and return value of the url.
 
     Args:
-        url (string): URL.
+        url (str): URL.
 
     Returns:
-        string: The last term of the url.
+        str: The last term of the url.
     """
     term = str(url)
     return term.split('/')[-1]
@@ -42,7 +42,7 @@ class ResultRow():
     error.
 
     Attributes:
-        id (str): Identfier of the outermost entity that caused the validation 
+        id (str): Identfier of the outermost entity that caused the validation
                   error.
         message (str): The message indicating the cause of error.
         property_path (str): The path to the source of error.
@@ -50,7 +50,12 @@ class ResultRow():
         severity (str): The severity of error.
     """
 
-    def __init__(self, id, message, property_path, value, severity):
+    def __init__(self,
+                 id: str,
+                 message: str,
+                 property_path: str,
+                 value: str,
+                 severity: str):
         self.id = id
         self.message = message
         self.property_path = property_path

@@ -1,4 +1,4 @@
-import serializer as serializer
+import schemaorgutils.serializer as serializer
 import schema_pb2 as schema
 import os
 import json

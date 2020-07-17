@@ -19,6 +19,7 @@ import schemaorgutils.utils.constants as constants
 import schemaorgutils.utils.utils as utils
 from pyshacl import validate
 from jinja2 import Environment, FileSystemLoader
+from typing import Any
 
 
 class SchemaValidator():
@@ -26,7 +27,7 @@ class SchemaValidator():
     and generate a html report for the validation result.
 
     Attributes:
-        reports (dict(list(ResultRow))): A dictionary mapping list of all error
+        reports (dict[list[ResultRow]]): A dictionary mapping list of all error
                                          results to an entity type.
         _constraints_file (str): The path to constraints file containing shacl
                                  validations.
@@ -34,10 +35,10 @@ class SchemaValidator():
                             generated.
         _position (int): The total number of entities validated.
         _is_closed (bool): The status of validator.
-        _total (dict(str, int)): Number of total entities for a particular type.
+        _total (dict[str, int]): Number of total entities for a particular type.
     """
 
-    def __init__(self, constraints_file, report_file):
+    def __init__(self, constraints_file: str, report_file: str):
 
         self.reports = dict()
         self._constraints_file = constraints_file
@@ -46,7 +47,7 @@ class SchemaValidator():
         self._is_closed = False
         self._total = dict()
 
-    def __add_ids(self, entity):
+    def __add_ids(self, entity: Any) -> Any:
         """Add uids to every entity in the data graph to be validated.
 
         Args:
@@ -66,7 +67,7 @@ class SchemaValidator():
 
             return entity
 
-    def add_entity(self, entity):
+    def add_entity(self, entity: dict) -> bool:
         """Add an entity that has to be validated.
 
         Args:
@@ -79,20 +80,23 @@ class SchemaValidator():
         assert self._is_closed == False, 'Validator has already been closed.'
 
         typ = entity['@type']
+        conforms = True
 
         if typ == 'ItemList':
             for x in entity['itemListElement']:
-                self.add_entity(x['item'])
+                c = self.add_entity(x['item'])
+                conforms = conforms and c
         elif typ == 'DataFeed':
             for x in entity['dataFeedElement']:
-                self.add_entity(x)
+                c = self.add_entity(x)
+                conforms = conforms and c
         else:
             if typ not in self.reports:
                 self.reports[typ] = list()
-            
+
             if typ not in self._total:
                 self._total[typ] = 0
-            
+
             self._total[typ] += 1
             self._position = self._position + 1
             id = ''
@@ -115,37 +119,42 @@ class SchemaValidator():
 
             _, results_graph, _ = validate(
                 g, shacl_graph=self._constraints_file)
-            results_graph.serialize("./test.ttl", format="turtle")
+            results_graph.serialize('./test.ttl', format='turtle')
             start_nodes = list()
-            conforms = True
 
             for r, _, _ in results_graph.triples(
                     (None, constants.result_constants['Type'], constants.result_constants['ValidationResult'])):
-                
-                if (r,constants.result_constants['FocusNode'], gid) in results_graph:
+
+                if (r,
+                        constants.result_constants['FocusNode'], gid) in results_graph:
                     start_nodes.append(r)
 
             for r in start_nodes:
-                conforms = (conforms and self.__add_report(
-                    results_graph, r, typ, '', id))
+                c = self.__add_report(results_graph, r, typ, '', id)
+                conforms = conforms and c
 
-            return conforms
+        return conforms
 
-    def __add_report(self, graph, result_id, typ, path, src_identifier):
+    def __add_report(self,
+                     graph: rdflib.Graph,
+                     result_id: str,
+                     typ: str,
+                     path: str,
+                     src_identifier: str) -> bool:
         """Perform a DFS over the results. Identify the root cause of the
         validation error. Add the cause to reports.
 
         Args:
-            graph (rdflib.Graph): The result graph representing the validation 
+            graph (rdflib.Graph): The result graph representing the validation
                                   errors.
-            result_id (string): The id of result that is being inspected.
-            typ (string): The @type of the main entity that is being validated.
-            path (string): The path from the main entity to the cause of error.
-            src_identifier (string): The @id of the main entity that is being 
+            result_id (str): The id of result that is being inspected.
+            typ (str): The @type of the main entity that is being validated.
+            path (str): The path from the main entity to the cause of error.
+            src_identifier (str): The @id of the main entity that is being
                                      validated.
 
         Returns:
-            bool: The conformance of entity that is validated by the result 
+            bool: The conformance of entity that is validated by the result
                   which is identified by result_id.
         """
 
@@ -183,8 +192,9 @@ class SchemaValidator():
             next_ids = list()
             for r, _, _ in graph.triples(
                     (None, constants.result_constants['Type'], constants.result_constants['ValidationResult'])):
-                
-                if (r,constants.result_constants['FocusNode'], value) in graph:
+
+                if (r,
+                        constants.result_constants['FocusNode'], value) in graph:
                     next_ids.append(r)
 
             for r in next_ids:
@@ -193,7 +203,13 @@ class SchemaValidator():
 
         return conforms
 
-    def __get_aggregates(self):
+    def __get_aggregates(self) -> dict:
+        """Computes the aggregates and returns it.
+
+        Returns:
+            dict: Dictionary containing computed aggregates for every entity.
+        """
+
         aggregates = {}
 
         for x in self.reports.keys():

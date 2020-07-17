@@ -1,6 +1,6 @@
-import validator as validator
+import schemaorgutils.validator as validator
 import json
-import utils.utils as utils
+import schemaorgutils.utils.utils as utils
 import os
 
 
