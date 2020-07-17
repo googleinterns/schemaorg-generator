@@ -115,7 +115,7 @@ class SchemaValidator():
 
             _, results_graph, _ = validate(
                 g, shacl_graph=self._constraints_file)
-
+            results_graph.serialize("./test.ttl", format="turtle")
             start_nodes = list()
             conforms = True
 
