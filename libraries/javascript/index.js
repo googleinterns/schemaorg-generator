@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+"use strict";
 const JSONLDSerializer = require("./jsonld-serializer");
 const JSONLDFeedSerializer = require("./jsonld-feed-serializer");
 const SchemaValidator = require("./schema-validator");

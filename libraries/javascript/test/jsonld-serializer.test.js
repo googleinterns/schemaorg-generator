@@ -1,3 +1,17 @@
+// Copyright 2020 Google LLC
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+
+//     https://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+"use strict";
 const expect = require('chai').expect;
 const schema = require("./schema_pb");
 const schemaDescriptor = require("./schema_descriptor.json");
@@ -16,7 +30,7 @@ const JSONLDSerializer = require("../index").JSONLDSerializer;
 describe("Test Serialization of Date", () => {
     it("Testing serialization of Date.", () => {
         let serializer = new JSONLDSerializer();
-        dt = new schema.Date();
+        let dt = new schema.Date();
         dt.setYear(2000);
         dt.setMonth(2);
         dt.setDay(9);
@@ -43,7 +57,7 @@ describe("Test Serialization of Date", () => {
 describe("Test serialization of Time", () => {
     it("Testing serialization of time without timezone.", () => {
         let serializer = new JSONLDSerializer();
-        tm = new schema.Time();
+        let tm = new schema.Time();
         tm.setHours(6);
         tm.setMinutes(30);
         tm.setSeconds(15);
@@ -55,7 +69,7 @@ describe("Test serialization of Time", () => {
 
     it("Testing serialization of time with timezone.", () => {
         let serializer = new JSONLDSerializer();
-        tm = new schema.Time();
+        let tm = new schema.Time();
         tm.setHours(6);
         tm.setMinutes(30);
         tm.setSeconds(15);
@@ -85,17 +99,17 @@ describe("Test serialization of DateTime", () => {
     it("Testing serialization of datetime without timezone.", () => {
         let serializer = new JSONLDSerializer();
         
-        dt = new schema.Date();
+        let dt = new schema.Date();
         dt.setYear(2000);
         dt.setMonth(2);
         dt.setDay(9);
 
-        tm = new schema.Time();
+        let tm = new schema.Time();
         tm.setHours(6);
         tm.setMinutes(30);
         tm.setSeconds(15);
 
-        dtt = new schema.DateTime();
+        let dtt = new schema.DateTime();
         dtt.setDate(dt);
         dtt.setTime(tm);
     
@@ -107,18 +121,18 @@ describe("Test serialization of DateTime", () => {
     it("Testing serialization of datetime with timezone.", () => {
         let serializer = new JSONLDSerializer();
         
-        dt = new schema.Date();
+        let dt = new schema.Date();
         dt.setYear(2000);
         dt.setMonth(2);
         dt.setDay(9);
 
-        tm = new schema.Time();
+        let tm = new schema.Time();
         tm.setHours(6);
         tm.setMinutes(30);
         tm.setSeconds(15);
         tm.setTimezone("+05:30");
 
-        dtt = new schema.DateTime();
+        let dtt = new schema.DateTime();
         dtt.setDate(dt);
         dtt.setTime(tm);
     
@@ -141,7 +155,7 @@ describe("Test serialization of DateTime", () => {
 describe("Test Serialization of Duration", () => {
     it("Testing serialization of Duration.", () => {
         let serializer = new JSONLDSerializer();
-        dn = new schema.Duration();
+        let dn = new schema.Duration();
         dn.setSeconds(100456123);
     
         let expected = "PT27904H28M43S";
@@ -167,7 +181,7 @@ describe("Test Serialization of Quantitative Values", () => {
     
     it("Testing serialization of Mass.", () => {
         let serializer = new JSONLDSerializer();
-        ms = new schema.Mass();
+        let ms = new schema.Mass();
         ms.setValue(10.5);
         ms.setUnit("KG");
     
@@ -178,7 +192,7 @@ describe("Test Serialization of Quantitative Values", () => {
 
     it("Testing serialization of Distance.", () => {
         let serializer = new JSONLDSerializer();
-        ds = new schema.Distance();
+        let ds = new schema.Distance();
         ds.setValue(10.5);
         ds.setUnit("Metre");
     
@@ -189,7 +203,7 @@ describe("Test Serialization of Quantitative Values", () => {
 
     it("Testing serialization of Energy.", () => {
         let serializer = new JSONLDSerializer();
-        eg = new schema.Energy();
+        let eg = new schema.Energy();
         eg.setValue(10.5);
         eg.setUnit("Joules");
     
@@ -211,7 +225,7 @@ describe("Test Serialization of Quantitative Values", () => {
 describe("Test Serialization of Property", () => {
     it("Testing serialization of Property.", () => {
         let serializer = new JSONLDSerializer();
-        prop = new schema.PositionProperty();
+        let prop = new schema.PositionProperty();
         prop.setText("abc");
         prop.setUrl("def");
     
@@ -240,7 +254,7 @@ describe("Test Serialization of Property", () => {
 describe("Test Serialization of Class", () => {
     it("Testing serialization of Class.", () => {
         let serializer = new JSONLDSerializer();
-        cls = new schema.Movie();
+        let cls = new schema.Movie();
         cls.setId("test id 1");
         
         let name = new schema.NameProperty()

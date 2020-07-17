@@ -18,6 +18,8 @@ npm link schemaorgutils
 
 SchemaValidator is used to validate a JSON-LD schema graph against SHACL constraints.
 
+**Note**: SHACL constraint ```sh:datatype xsd:double;``` will fail for any double without decimal part, say 9.0. So please change the constraint to ```sh:or ( [sh:datatype xsd:double] [sh:datatype xsd:integer] )``` to avoid incorrect error report.
+
 #### Functions and parameters
 ##### constructor(constraintsFile, reportFile):
 Initialize the validator.
