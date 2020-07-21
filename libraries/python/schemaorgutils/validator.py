@@ -118,7 +118,7 @@ class SchemaValidator():
             g.serialize('test.nt', format='nt')
 
             _, results_graph, _ = validate(
-                g, shacl_graph=self._constraints_file)
+                g, shacl_graph=self._constraints_file, advanced=True)
             results_graph.serialize('./test.ttl', format='turtle')
             start_nodes = list()
 
