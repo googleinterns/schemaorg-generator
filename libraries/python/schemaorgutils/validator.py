@@ -172,7 +172,7 @@ class SchemaValidator():
         if not isinstance(value, rdflib.URIRef):
             message = '-'
 
-            if not value:
+            if value is None:
                 value = '-'
 
             msg = graph.value(
