@@ -1,6 +1,7 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+
 .pytest_cache/
 
 # C extensions
@@ -55,3 +56,4 @@ docs/_build/
 
 # config
 *config.json
+
