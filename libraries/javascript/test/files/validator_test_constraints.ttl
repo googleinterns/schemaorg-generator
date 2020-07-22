@@ -1,0 +1,49 @@
+@prefix dash: <http://datashapes.org/dash#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <http://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+
+schema:MovieShape
+    a sh:NodeShape ;
+    sh:targetClass schema:Movie ;
+    sh:property [
+        sh:path schema:name ;
+        sh:datatype xsd:string ;
+        sh:message "Name of movie must be string.";
+        sh:severity sh:Violation;
+    ] ;
+    sh:property [
+        sh:path schema:actor ;
+        sh:node schema:PersonShape ;
+    ] ;
+    sh:property [
+        sh:path schema:creator ;
+        sh:and ( [ sh:node schema:PersonShape ] [ sh:node schema:OrganizationShape ] ) ;
+    ].
+
+schema:PersonShape
+    a sh:NodeShape ;
+    sh:targetClass schema:Person;
+    sh:property [
+        sh:path schema:name ;
+        sh:datatype xsd:string ;
+        sh:message "Name of person must be string.";
+        sh:severity sh:Warning;
+    ] ;
+    sh:property [
+        sh:path schema:url ;
+        sh:datatype xsd:string ;
+    ].
+
+schema:OrganizationShape
+    a sh:NodeShape ;
+    sh:targetClass schema:Organization;
+    sh:property [
+        sh:path schema:url ;
+        sh:datatype xsd:string ;
+        sh:message "Name of organization must be string.";
+        sh:severity sh:Info;
+    ].
