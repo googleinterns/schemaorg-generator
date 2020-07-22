@@ -1,0 +1,45 @@
+message DateTime {
+	option (type) = "DatatypeDateTime";
+	Date date = 1;
+	Time time = 2;
+}
+
+message Date {
+	option (type) = "DatatypeDate";
+	int32 year = 1;
+	int32 month = 2;
+	int32 day = 3;
+}
+
+message Time {
+	option (type) = "DatatypeTime";
+	int32 hours = 1;
+	int32 minutes = 2;
+	int32 seconds = 3;
+	string timezone = 4;
+}
+
+message Duration {
+	option (type) = "DatatypeDuration";
+	int64 seconds = 1;
+}
+
+message Distance {
+	option (type) = "DatatypeQuantitative";
+	double value = 1;
+	string unit = 2;
+}
+
+message Energy {
+	option (type) = "DatatypeQuantitative";
+	double value = 1;
+	string unit = 2;
+}
+
+message Mass {
+	option (type) = "DatatypeQuantitative";
+	double value = 1;
+	string unit = 2;
+}
+
+

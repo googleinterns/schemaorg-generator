@@ -1,0 +1,173 @@
+syntax = "proto3"; 
+package schemaorg; 
+
+import "google/protobuf/descriptor.proto";
+
+extend google.protobuf.MessageOptions {
+	optional string type = 50001;
+}
+
+extend google.protobuf.EnumValueOptions {
+	optional string schemaorg_value = 50002;
+}
+
+message DateTime {
+	option (type) = "DatatypeDateTime";
+	Date date = 1;
+	Time time = 2;
+}
+
+message Date {
+	option (type) = "DatatypeDate";
+	int32 year = 1;
+	int32 month = 2;
+	int32 day = 3;
+}
+
+message Time {
+	option (type) = "DatatypeTime";
+	int32 hours = 1;
+	int32 minutes = 2;
+	int32 seconds = 3;
+	string timezone = 4;
+}
+
+message Duration {
+	option (type) = "DatatypeDuration";
+	int64 seconds = 1;
+}
+
+message Distance {
+	option (type) = "DatatypeQuantitative";
+	double value = 1;
+	string unit = 2;
+}
+
+message Energy {
+	option (type) = "DatatypeQuantitative";
+	double value = 1;
+	string unit = 2;
+}
+
+message Mass {
+	option (type) = "DatatypeQuantitative";
+	double value = 1;
+	string unit = 2;
+}
+
+// Definition of classes begin here.
+
+// 
+message ChildClassA { 
+	option (type) = "ChildClassA";
+
+	// Properties from ChildClassA.
+	string id = 1 [json_name = "@id"]; 
+    repeated BetaProperty beta = 2 [json_name = "beta"];
+
+    // Properties from RootClass.
+    repeated AlphaProperty alpha = 3 [json_name = "alpha"];
+}
+
+// 
+message ChildClassC { 
+	option (type) = "ChildClassC";
+
+	// Properties from ChildClassC.
+	string id = 1 [json_name = "@id"]; 
+
+    // Properties from ChildClassB.
+    repeated GammaProperty gamma = 2 [json_name = "gamma"];
+
+    // Properties from Enumeration.
+    repeated BetaProperty beta = 3 [json_name = "beta"];
+
+    // Properties from RootClass.
+    repeated AlphaProperty alpha = 4 [json_name = "alpha"];
+}
+
+// 
+message Enumeration { 
+	option (type) = "Enumeration";
+
+	// Properties from Enumeration.
+	string id = 1 [json_name = "@id"]; 
+    repeated BetaProperty beta = 2 [json_name = "beta"];
+}
+
+// Comment for RootClass.
+// Second Line of Comment.
+message RootClass { 
+	option (type) = "RootClass";
+
+	// Properties from RootClass.
+	string id = 1 [json_name = "@id"]; 
+    repeated AlphaProperty alpha = 2 [json_name = "alpha"];
+}
+
+// Definition of enumerations begin here.
+
+// 
+message ChildClassBClass { 
+	option (type) = "ChildClassB";
+	enum Id {
+		UNKNOWN = 0 [(schemaorg_value)="Unknown"];
+		ENUM_VALUE_ONE = 1 [(schemaorg_value) = "http://schema.org/EnumValueOne"];
+		ENUM_VALUE_TWO = 2 [(schemaorg_value) = "http://schema.org/EnumValueTwo"];
+	}
+
+
+	// Properties from ChildClassB.
+	string id = 1 [json_name = "@id"]; 
+    repeated GammaProperty gamma = 2 [json_name = "gamma"];
+
+    // Properties from Enumeration.
+    repeated BetaProperty beta = 3 [json_name = "beta"];
+
+    // Properties from RootClass.
+    repeated AlphaProperty alpha = 4 [json_name = "alpha"];
+}
+
+message ChildClassB { 
+	option (type) = "EnumWrapper";
+	oneof values {
+		ChildClassBClass.Id id = 1;
+		ChildClassBClass child_class_b = 2;
+	}
+}
+
+// Definition of properties begin here.
+
+// Comment for alpha.
+// Second Line of Comment.
+message AlphaProperty { 
+	option (type) = "Property";
+	oneof values {
+		ChildClassB child_class_b = 1; 
+		ChildClassC child_class_c = 2; 
+		double float = 3; 
+		int64 integer = 4; 
+		double number = 5; 
+	}
+}
+
+// 
+message BetaProperty { 
+	option (type) = "Property";
+	oneof values {
+		ChildClassB child_class_b = 1; 
+		ChildClassC child_class_c = 2; 
+		string text = 3; 
+		string url = 4; 
+	}
+}
+
+// 
+message GammaProperty { 
+	option (type) = "Property";
+	oneof values {
+		ChildClassA child_class_a = 1; 
+		double float = 2; 
+	}
+}
+
