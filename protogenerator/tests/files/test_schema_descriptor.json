@@ -1,0 +1,111 @@
+{
+    "messages": {
+        "ChildClassA": {
+            "@type": "ChildClassA",
+            "fields": [
+                "@id",
+                "beta",
+                "alpha"
+            ]
+        },
+        "ChildClassC": {
+            "@type": "ChildClassC",
+            "fields": [
+                "@id",
+                "gamma",
+                "beta",
+                "alpha"
+            ]
+        },
+        "Enumeration": {
+            "@type": "Enumeration",
+            "fields": [
+                "@id",
+                "beta"
+            ]
+        },
+        "RootClass": {
+            "@type": "RootClass",
+            "fields": [
+                "@id",
+                "alpha"
+            ]
+        },
+        "alpha": {
+            "@type": "Property",
+            "fields": [
+                "ChildClassB",
+                "ChildClassC",
+                "Float",
+                "Integer",
+                "Number"
+            ]
+        },
+        "beta": {
+            "@type": "Property",
+            "fields": [
+                "ChildClassB",
+                "ChildClassC",
+                "Text",
+                "URL"
+            ]
+        },
+        "gamma": {
+            "@type": "Property",
+            "fields": [
+                "ChildClassA",
+                "Float"
+            ]
+        },
+        "ChildClassB": {
+            "@type": "EnumWrapper",
+            "values": [
+                "Unknown",
+                "http://schema.org/EnumValueOne",
+                "http://schema.org/EnumValueTwo"
+            ],
+            "fields": [
+                "id",
+                "ChildClassBClass"
+            ]
+        },
+        "ChildClassBClass": {
+            "@type": "ChildClassB",
+            "fields": [
+                "@id",
+                "gamma",
+                "beta",
+                "alpha"
+            ]
+        },
+        "Date": {
+            "@type": "DatatypeDate"
+        },
+        "DateTime": {
+            "@type": "DatatypeDateTime"
+        },
+        "Time": {
+            "@type": "DatatypeTime"
+        },
+        "Duration": {
+            "@type": "DatatypeDuration"
+        },
+        "Distance": {
+            "@type": "DatatypeQuantitative"
+        },
+        "Energy": {
+            "@type": "DatatypeQuantitative"
+        },
+        "Mass": {
+            "@type": "DatatypeQuantitative"
+        }
+    },
+    "primitives": [
+        "Boolean",
+        "Float",
+        "Integer",
+        "Number",
+        "Text",
+        "URL"
+    ]
+}

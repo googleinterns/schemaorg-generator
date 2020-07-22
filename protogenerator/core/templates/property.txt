@@ -1,0 +1,13 @@
+{{comment}}
+message {{name}} { 
+	option (type) = "Property";
+	oneof values {
+        {% set field_number = namespace(value=1) %}
+        {% for x in field_types %}
+        {% set field_number.value = field_number.value if field_number.value < 19000 or field_number.value > 20000 else 20000 %}
+		{{get_class_type(x, class_list)}} {{to_snake_case(x)}} = {{field_number.value}}; 
+        {% set field_number.value = field_number.value + 1 %}
+        {% endfor %}
+	}
+}
+
