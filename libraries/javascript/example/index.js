@@ -49,7 +49,9 @@ async function main () {
     let example = new IMDBExample();
     let serializer = new JSONLDFeedSerializer("./generated-feed.json", feedType="ItemList", validator=validator);
     console.log("Feed generation started.");
-    await example.generateFeed(con, schema, serializer, schemaDescriptor);
+    for await(let x of example.generateFeed(con, schema, schemaDescriptor)){
+        serializer.addItem(x[0], x[1], schemaDescriptor);
+    }
     serializer.close();
     console.log("Feed generation completed.");
     con.end();
