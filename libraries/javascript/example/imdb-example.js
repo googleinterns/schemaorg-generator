@@ -25,10 +25,9 @@ class IMDBExample{
      * Make proto objects for movies and call serializer.addItem.
      * @param  {Object} con MySQL connection object.
      * @param  {Module} schema  Compiled protobuf schema.
-     * @param  {Object} serializer  JSONLDFeedSerializer.
-     * @param  {Object} schemaDescriptor  JSON schema descriptor.
+     * @returns  {Array} First element is the movie object and the second element is string "Movie".
      */
-    async moviesToProto(con, schema, serializer, schemaDescriptor){
+    async *moviesToProto(con, schema){
 
         let q = `select 
                     m.url as url, 
@@ -192,8 +191,7 @@ class IMDBExample{
                 movie = this.addTrailers(JSON.parse(m["trailers"]), schema, movie);
             }
             
-
-            serializer.addItem(movie, "Movie", schemaDescriptor);
+            yield [movie, "Movie"];
 
         }
     }
@@ -202,10 +200,9 @@ class IMDBExample{
      * Make proto objects for tvseries and call serializer.addItem.
      * @param  {Object} con MySQL connection object.
      * @param  {Module} schema  Compiled protobuf schema.
-     * @param  {Object} serializer  JSONLDFeedSerializer.
-     * @param  {Object} schemaDescriptor  JSON schema descriptor.
+     * @returns  {Array} First element is the series object and the second element is string "TVSeries".
      */
-    async seriesToProto(con, schema, serializer, schemaDescriptor){
+    async *seriesToProto(con, schema){
 
         let q = `select 
                     m.url as url, 
@@ -363,7 +360,7 @@ class IMDBExample{
             }
             
 
-            serializer.addItem(tvseries, "TVSeries", schemaDescriptor);
+            yield [tvseries, "TVSeries"];
 
         }
     }
@@ -372,10 +369,9 @@ class IMDBExample{
      * Make proto objects for tvepisodes and call serializer.addItem.
      * @param  {Object} con MySQL connection object.
      * @param  {Module} schema  Compiled protobuf schema.
-     * @param  {Object} serializer  JSONLDFeedSerializer.
-     * @param  {Object} schemaDescriptor  JSON schema descriptor.
+     * @returns  {Array} First element is the episode object and the second element is string "TVEpisode".
      */
-    async episodesToProto(con, schema, serializer, schemaDescriptor){
+    async *episodesToProto(con, schema){
 
         let q = `select 
                     m.url as url, 
@@ -540,7 +536,7 @@ class IMDBExample{
             }
             
 
-            serializer.addItem(episode, "TVEpisode", schemaDescriptor);
+            yield [episode, "TVEpisode"];
 
         }
     }
@@ -857,14 +853,21 @@ class IMDBExample{
      * Call moviesToProto, seriesToProto and episodesToProto.
      * @param  {Object} con MySQL connection object.
      * @param  {Module} schema  Compiled protobuf schema.
-     * @param  {Object} serializer  JSONLDFeedSerializer.
-     * @param  {Object} schemaDescriptor  JSON schema descriptor.
+     * @returns  {Array} First element is the object and the second element is its type.
      */
-    async generateFeed(con, schema, serializer, schemaDescriptor){
+    async *generateFeed(con, schema){
 
-        await this.moviesToProto(con, schema, serializer, schemaDescriptor);
-        await this.seriesToProto(con, schema, serializer, schemaDescriptor);
-        await this.episodesToProto(con, schema, serializer, schemaDescriptor);
+        for await(let m of this.moviesToProto(con, schema)){
+            yield m;
+        }
+        
+        for await(let m of this.seriesToProto(con, schema)){
+            yield m;
+        }
+        
+        for await(let m of this.episodesToProto(con, schema)){
+            yield m;
+        }
 
     }
 
