@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "mocha": "^8.0.1"
+    "mocha": "^8.4.0"
   },
   "dependencies": {
     "@rdfjs/parser-jsonld": "^1.2.1",
